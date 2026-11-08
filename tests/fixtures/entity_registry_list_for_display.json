@@ -1,0 +1,371 @@
+{
+ "note": "first 40 entries",
+ "entities": [
+  {
+   "ei": "sensor.sun_next_dawn",
+   "pl": "sun",
+   "lb": [],
+   "di": "9d4d065bd32745e90fa38d52f52e2215",
+   "tk": "next_dawn",
+   "ec": 1,
+   "hn": true,
+   "en": "Next dawn"
+  },
+  {
+   "ei": "sensor.sun_next_dusk",
+   "pl": "sun",
+   "lb": [],
+   "di": "9d4d065bd32745e90fa38d52f52e2215",
+   "tk": "next_dusk",
+   "ec": 1,
+   "hn": true,
+   "en": "Next dusk"
+  },
+  {
+   "ei": "sensor.sun_next_midnight",
+   "pl": "sun",
+   "lb": [],
+   "di": "9d4d065bd32745e90fa38d52f52e2215",
+   "tk": "next_midnight",
+   "ec": 1,
+   "hn": true,
+   "en": "Next midnight"
+  },
+  {
+   "ei": "sensor.sun_next_noon",
+   "pl": "sun",
+   "lb": [],
+   "di": "9d4d065bd32745e90fa38d52f52e2215",
+   "tk": "next_noon",
+   "ec": 1,
+   "hn": true,
+   "en": "Next noon"
+  },
+  {
+   "ei": "sensor.sun_next_rising",
+   "pl": "sun",
+   "lb": [],
+   "di": "9d4d065bd32745e90fa38d52f52e2215",
+   "tk": "next_rising",
+   "ec": 1,
+   "hn": true,
+   "en": "Next rising"
+  },
+  {
+   "ei": "sensor.sun_next_setting",
+   "pl": "sun",
+   "lb": [],
+   "di": "9d4d065bd32745e90fa38d52f52e2215",
+   "tk": "next_setting",
+   "ec": 1,
+   "hn": true,
+   "en": "Next setting"
+  },
+  {
+   "ei": "update.home_assistant_supervisor_update",
+   "pl": "hassio",
+   "lb": [],
+   "di": "c43e7bf6cd8c5ef1077019ea7249c453",
+   "tk": "update",
+   "ec": 0,
+   "hn": true,
+   "en": "Update"
+  },
+  {
+   "ei": "update.home_assistant_core_update",
+   "pl": "hassio",
+   "lb": [],
+   "di": "e8317162d5b4070d95a2c3cc9bd7d91f",
+   "tk": "update",
+   "ec": 0,
+   "hn": true,
+   "en": "Update"
+  },
+  {
+   "ei": "event.backup_automatic_backup",
+   "pl": "backup",
+   "lb": [],
+   "di": "4d5c4764b10234e9d26946b90479bc92",
+   "tk": "automatic_backup_event",
+   "hn": true,
+   "en": "Automatic backup"
+  },
+  {
+   "ei": "sensor.backup_backup_manager_state",
+   "pl": "backup",
+   "lb": [],
+   "di": "4d5c4764b10234e9d26946b90479bc92",
+   "tk": "backup_manager_state",
+   "hn": true,
+   "en": "Backup Manager state"
+  },
+  {
+   "ei": "sensor.backup_next_scheduled_automatic_backup",
+   "pl": "backup",
+   "lb": [],
+   "di": "4d5c4764b10234e9d26946b90479bc92",
+   "tk": "next_scheduled_automatic_backup",
+   "hn": true,
+   "en": "Next scheduled automatic backup"
+  },
+  {
+   "ei": "sensor.backup_last_successful_automatic_backup",
+   "pl": "backup",
+   "lb": [],
+   "di": "4d5c4764b10234e9d26946b90479bc92",
+   "tk": "last_successful_automatic_backup",
+   "hn": true,
+   "en": "Last successful automatic backup"
+  },
+  {
+   "ei": "sensor.backup_last_attempted_automatic_backup",
+   "pl": "backup",
+   "lb": [],
+   "di": "4d5c4764b10234e9d26946b90479bc92",
+   "tk": "last_attempted_automatic_backup",
+   "hn": true,
+   "en": "Last attempted automatic backup"
+  },
+  {
+   "ei": "person.rob_brown",
+   "pl": "person",
+   "lb": [],
+   "en": "Sam Taylor"
+  },
+  {
+   "ei": "todo.shopping_list",
+   "pl": "shopping_list",
+   "lb": [],
+   "tk": "shopping_list",
+   "hn": true,
+   "en": "Shopping list"
+  },
+  {
+   "ei": "tts.google_translate_en_com",
+   "pl": "google_translate",
+   "lb": [],
+   "di": "b6a6ff32888d06edd375bbcf05ac07d4",
+   "en": ""
+  },
+  {
+   "ei": "light.wiz_rgbw_tunable_4b3572",
+   "pl": "wiz",
+   "lb": [
+    "office"
+   ],
+   "di": "d4fd6d4c12ec9591a2c254aca9af01c8",
+   "hn": true,
+   "en": "Flex Strip"
+  },
+  {
+   "ei": "number.wiz_rgbw_tunable_4b3572_effect_speed",
+   "pl": "wiz",
+   "lb": [],
+   "di": "d4fd6d4c12ec9591a2c254aca9af01c8",
+   "tk": "effect_speed",
+   "ec": 0,
+   "hn": true,
+   "en": "Effect speed"
+  },
+  {
+   "ei": "sensor.wiz_rgbw_tunable_4b3572_power",
+   "pl": "wiz",
+   "lb": [],
+   "di": "d4fd6d4c12ec9591a2c254aca9af01c8",
+   "hb": true,
+   "hn": true,
+   "en": "Power",
+   "dp": 0
+  },
+  {
+   "ei": "light.wiz_rgbw_tunable_88c8dc",
+   "pl": "wiz",
+   "lb": [],
+   "di": "2ca55dc8eac9fdd3a13a8d75476c3cb4",
+   "hn": true
+  },
+  {
+   "ei": "number.wiz_rgbw_tunable_88c8dc_effect_speed",
+   "pl": "wiz",
+   "lb": [],
+   "di": "2ca55dc8eac9fdd3a13a8d75476c3cb4",
+   "tk": "effect_speed",
+   "ec": 0,
+   "hn": true,
+   "en": "Effect speed"
+  },
+  {
+   "ei": "sensor.wiz_rgbw_tunable_88c8dc_power",
+   "pl": "wiz",
+   "lb": [],
+   "di": "2ca55dc8eac9fdd3a13a8d75476c3cb4",
+   "hn": true,
+   "en": "Power",
+   "dp": 0
+  },
+  {
+   "ei": "light.wiz_rgbw_tunable_52895b",
+   "pl": "wiz",
+   "lb": [],
+   "di": "a853a7f26ce215150278412c87826a96",
+   "hn": true
+  },
+  {
+   "ei": "number.wiz_rgbw_tunable_52895b_effect_speed",
+   "pl": "wiz",
+   "lb": [],
+   "di": "a853a7f26ce215150278412c87826a96",
+   "tk": "effect_speed",
+   "ec": 0,
+   "hn": true,
+   "en": "Effect speed"
+  },
+  {
+   "ei": "sensor.cnlbp622c_623c_canon_cartridge_054_black_toner",
+   "pl": "ipp",
+   "lb": [],
+   "di": "70b72f0afa536de210461f1f703db018",
+   "tk": "marker",
+   "hn": true,
+   "en": "Canon Cartridge 054 Black Toner"
+  },
+  {
+   "ei": "sensor.cnlbp622c_623c_canon_cartridge_054_cyan_toner",
+   "pl": "ipp",
+   "lb": [],
+   "di": "70b72f0afa536de210461f1f703db018",
+   "tk": "marker",
+   "hn": true,
+   "en": "Canon Cartridge 054 Cyan Toner"
+  },
+  {
+   "ei": "sensor.cnlbp622c_623c_canon_cartridge_054_magenta_to",
+   "pl": "ipp",
+   "lb": [],
+   "di": "70b72f0afa536de210461f1f703db018",
+   "tk": "marker",
+   "hn": true,
+   "en": "Canon Cartridge 054 Magenta To"
+  },
+  {
+   "ei": "sensor.cnlbp622c_623c_canon_cartridge_054_yellow_ton",
+   "pl": "ipp",
+   "lb": [],
+   "di": "70b72f0afa536de210461f1f703db018",
+   "tk": "marker",
+   "hn": true,
+   "en": "Canon Cartridge 054 Yellow Ton"
+  },
+  {
+   "ei": "sensor.cnlbp622c_623c",
+   "pl": "ipp",
+   "lb": [],
+   "di": "70b72f0afa536de210461f1f703db018",
+   "tk": "printer",
+   "hn": true
+  },
+  {
+   "ei": "update.hacs_update",
+   "pl": "hacs",
+   "lb": [],
+   "di": "9d61861babcb038512b76ea420a14286",
+   "ec": 0,
+   "en": "Update"
+  },
+  {
+   "ei": "update.wyze_update",
+   "pl": "hacs",
+   "lb": [],
+   "di": "b995e216d02a85935d5b2eb0d9e760c3",
+   "ec": 0,
+   "en": "Update"
+  },
+  {
+   "ei": "binary_sensor.dogs_feeding",
+   "pl": "tuya",
+   "lb": [],
+   "di": "47383312a2e2c12163426f7cab534f00",
+   "tk": "feeding",
+   "hn": true,
+   "en": "Feeding"
+  },
+  {
+   "ei": "binary_sensor.dogs_charging",
+   "pl": "tuya",
+   "lb": [],
+   "di": "47383312a2e2c12163426f7cab534f00",
+   "ec": 1,
+   "hn": true,
+   "en": "Charging"
+  },
+  {
+   "ei": "camera.donna",
+   "pl": "tuya",
+   "lb": [],
+   "di": "a6505fb66e78218bb096f00f1128f3df",
+   "hn": true
+  },
+  {
+   "ei": "light.donna_indicator_light",
+   "pl": "tuya",
+   "lb": [],
+   "di": "a6505fb66e78218bb096f00f1128f3df",
+   "ec": 0,
+   "hn": true,
+   "en": "Indicator light"
+  },
+  {
+   "ei": "number.donna_volume",
+   "pl": "tuya",
+   "lb": [],
+   "di": "a6505fb66e78218bb096f00f1128f3df",
+   "tk": "volume",
+   "ec": 0,
+   "hn": true,
+   "en": "Volume"
+  },
+  {
+   "ei": "number.dogs_feed",
+   "pl": "tuya",
+   "lb": [],
+   "di": "47383312a2e2c12163426f7cab534f00",
+   "tk": "feed",
+   "hn": true,
+   "en": "Feed"
+  },
+  {
+   "ei": "select.donna_record_mode",
+   "pl": "tuya",
+   "lb": [],
+   "di": "a6505fb66e78218bb096f00f1128f3df",
+   "tk": "record_mode",
+   "ec": 0,
+   "hn": true,
+   "en": "Record mode"
+  },
+  {
+   "ei": "select.donna_night_vision",
+   "pl": "tuya",
+   "lb": [],
+   "di": "a6505fb66e78218bb096f00f1128f3df",
+   "tk": "basic_nightvision",
+   "ec": 0,
+   "hn": true,
+   "en": "Night vision"
+  },
+  {
+   "ei": "select.donna_motion_detection_sensitivity",
+   "pl": "tuya",
+   "lb": [],
+   "di": "a6505fb66e78218bb096f00f1128f3df",
+   "tk": "motion_sensitivity",
+   "ec": 0,
+   "hn": true,
+   "en": "Motion detection sensitivity"
+  }
+ ],
+ "entity_categories": {
+  "0": "config",
+  "1": "diagnostic"
+ }
+}

@@ -1,0 +1,38 @@
+{
+ "area_id": "test_room",
+ "categories": {},
+ "config_entry_id": "01M69CQCXBWZVPW57PA7AXW4RX",
+ "config_subentry_id": null,
+ "created_at": 1793464185.772854,
+ "device_id": null,
+ "disabled_by": null,
+ "entity_category": null,
+ "entity_id": "light.test_lamp",
+ "has_entity_name": false,
+ "hidden_by": null,
+ "icon": null,
+ "id": "37802f6dd2594b6397c9af2185405de9",
+ "labels": [],
+ "modified_at": 1793683934.331764,
+ "name": null,
+ "options": {
+  "conversation": {
+   "should_expose": false
+  }
+ },
+ "original_name": "Test Lamp",
+ "platform": "template",
+ "translation_key": null,
+ "unique_id": "01M69CQCXBWZVPW57PA7AXW4RX",
+ "aliases": [
+  null
+ ],
+ "capabilities": {
+  "supported_color_modes": [
+   "brightness"
+  ]
+ },
+ "device_class": null,
+ "original_device_class": null,
+ "original_icon": null
+}

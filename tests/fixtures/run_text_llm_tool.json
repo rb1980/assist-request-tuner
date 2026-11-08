@@ -1,0 +1,203 @@
+{
+ "events": [
+  {
+   "type": "run-start",
+   "data": {
+    "pipeline": "01m1wjvvehh1exc7wbq414j1b3",
+    "language": "en",
+    "conversation_id": "01M6FPPTAFAYCDW1B79M1X6WFC",
+    "runner_data": {
+     "stt_binary_handler_id": null,
+     "timeout": 180
+    }
+   },
+   "timestamp": "2026-11-03T03:19:39.087599+00:00"
+  },
+  {
+   "type": "intent-start",
+   "data": {
+    "engine": "conversation.local_llm_server_google_gemma_4_e4b_ai_agent",
+    "language": "en",
+    "intent_input": "dim the test lamp to thirty percent",
+    "conversation_id": "01M6FPPTAFAYCDW1B79M1X6WFC",
+    "device_id": null,
+    "satellite_id": null,
+    "prefer_local_intents": true
+   },
+   "timestamp": "2026-11-03T03:19:39.087620+00:00"
+  },
+  {
+   "type": "intent-progress",
+   "data": {
+    "chat_log_delta": {
+     "role": "assistant"
+    }
+   },
+   "timestamp": "2026-11-03T03:19:39.405748+00:00"
+  },
+  {
+   "type": "intent-progress",
+   "data": {
+    "chat_log_delta": {
+     "tool_calls": [
+      {
+       "tool_name": "assist__light__HassLightSet",
+       "tool_args": {
+        "name": "Test Lamp",
+        "brightness": 30
+       },
+       "id": "dfv0qvr7ePdi6sj9qO74CqwKcRaKW0Sj",
+       "external": false
+      }
+     ]
+    }
+   },
+   "timestamp": "2026-11-03T03:19:42.272811+00:00"
+  },
+  {
+   "type": "intent-progress",
+   "data": {
+    "chat_log_delta": {
+     "role": "tool_result",
+     "agent_id": "conversation.local_llm_server_google_gemma_4_e4b_ai_agent",
+     "tool_call_id": "dfv0qvr7ePdi6sj9qO74CqwKcRaKW0Sj",
+     "tool_name": "assist__light__HassLightSet",
+     "tool_result": {
+      "speech": {},
+      "response_type": "action_done",
+      "data": {
+       "success": [
+        {
+         "name": "Test Lamp",
+         "type": "entity",
+         "id": "light.test_lamp"
+        }
+       ],
+       "failed": []
+      }
+     },
+     "created": "2026-11-03T03:19:42.275944+00:00"
+    }
+   },
+   "timestamp": "2026-11-03T03:19:42.276024+00:00"
+  },
+  {
+   "type": "intent-progress",
+   "data": {
+    "chat_log_delta": {
+     "role": "assistant"
+    }
+   },
+   "timestamp": "2026-11-03T03:19:42.638349+00:00"
+  },
+  {
+   "type": "intent-progress",
+   "data": {
+    "chat_log_delta": {
+     "content": "Test"
+    }
+   },
+   "timestamp": "2026-11-03T03:19:42.638946+00:00"
+  },
+  {
+   "type": "intent-progress",
+   "data": {
+    "chat_log_delta": {
+     "content": " Lamp"
+    }
+   },
+   "timestamp": "2026-11-03T03:19:42.705516+00:00"
+  },
+  {
+   "type": "intent-progress",
+   "data": {
+    "chat_log_delta": {
+     "content": " dim"
+    }
+   },
+   "timestamp": "2026-11-03T03:19:42.767779+00:00"
+  },
+  {
+   "type": "intent-progress",
+   "data": {
+    "chat_log_delta": {
+     "content": "med"
+    }
+   },
+   "timestamp": "2026-11-03T03:19:42.830820+00:00"
+  },
+  {
+   "type": "intent-progress",
+   "data": {
+    "chat_log_delta": {
+     "content": " to"
+    }
+   },
+   "timestamp": "2026-11-03T03:19:42.894086+00:00"
+  },
+  {
+   "type": "intent-progress",
+   "data": {
+    "chat_log_delta": {
+     "content": " thirty"
+    }
+   },
+   "timestamp": "2026-11-03T03:19:42.958425+00:00"
+  },
+  {
+   "type": "intent-progress",
+   "data": {
+    "chat_log_delta": {
+     "content": " percent"
+    }
+   },
+   "timestamp": "2026-11-03T03:19:43.020981+00:00"
+  },
+  {
+   "type": "intent-progress",
+   "data": {
+    "chat_log_delta": {
+     "content": "."
+    }
+   },
+   "timestamp": "2026-11-03T03:19:43.084254+00:00"
+  },
+  {
+   "type": "intent-end",
+   "data": {
+    "processed_locally": false,
+    "intent_output": {
+     "response": {
+      "speech": {
+       "plain": {
+        "speech": "Test Lamp dimmed to thirty percent.",
+        "extra_data": null
+       }
+      },
+      "card": {},
+      "language": "en",
+      "response_type": "action_done",
+      "data": {
+       "success": [
+        {
+         "name": "Test Lamp",
+         "type": "entity",
+         "id": "light.test_lamp"
+        }
+       ],
+       "failed": []
+      }
+     },
+     "conversation_id": "01M6FPPTAFAYCDW1B79M1X6WFC",
+     "continue_conversation": false
+    }
+   },
+   "timestamp": "2026-11-03T03:19:43.147072+00:00"
+  },
+  {
+   "type": "run-end",
+   "data": null,
+   "timestamp": "2026-11-03T03:19:43.147118+00:00"
+  }
+ ]
+}

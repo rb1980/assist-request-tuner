@@ -1,0 +1,94 @@
+{
+ "exposed_entities": {
+  "person.rob_brown": {
+   "conversation": true
+  },
+  "todo.shopping_list": {
+   "conversation": true
+  },
+  "light.wiz_rgbw_tunable_4b3572": {
+   "conversation": true
+  },
+  "light.wiz_rgbw_tunable_88c8dc": {
+   "conversation": true
+  },
+  "light.wiz_rgbw_tunable_52895b": {
+   "conversation": true
+  },
+  "climate.thermostat": {
+   "conversation": true
+  },
+  "sensor.thermostat_temperature": {
+   "conversation": true
+  },
+  "light.wiz_rgbw_tunable_00b727": {
+   "conversation": true
+  },
+  "light.wiz_rgbw_tunable_7bc414": {
+   "conversation": true
+  },
+  "light.wiz_rgbw_tunable_68451d": {
+   "conversation": true
+  },
+  "light.wiz_rgbww_tunable_d3a436": {
+   "conversation": true
+  },
+  "light.wiz_rgbw_tunable_b7f59e": {
+   "conversation": true
+  },
+  "light.wiz_rgbw_tunable_592c52": {
+   "conversation": true
+  },
+  "light.wiz_rgbw_tunable_02cf11": {
+   "conversation": true
+  },
+  "light.wiz_rgbww_tunable_1a217f": {
+   "conversation": true
+  },
+  "light.wiz_rgbw_tunable_fae263": {
+   "conversation": true
+  },
+  "light.wiz_rgbw_tunable_80e8dc": {
+   "conversation": true
+  },
+  "light.wiz_rgbw_tunable_2d0e7a": {
+   "conversation": true
+  },
+  "light.office_bar_pirate_light": {
+   "conversation": true
+  },
+  "media_player.patio_patio": {
+   "conversation": true
+  },
+  "media_player.living_room_tv_living_room_tv": {
+   "conversation": true
+  },
+  "media_player.living_room_five_living_room_five": {
+   "conversation": true
+  },
+  "media_player.bar": {
+   "conversation": true
+  },
+  "light.garage_door_light": {
+   "conversation": true
+  },
+  "switch.living_room_motion_detection": {
+   "conversation": true
+  },
+  "switch.garage_door_motion_detection": {
+   "conversation": true
+  },
+  "switch.front_door_motion_detection": {
+   "conversation": true
+  },
+  "binary_sensor.ac_infinity_control_ceiling_fan_state": {
+   "conversation": true
+  },
+  "binary_sensor.ac_infinity_control_loft_fan_state": {
+   "conversation": true
+  },
+  "sensor.ac_infinity_control_temperature": {
+   "conversation": true
+  }
+ }
+}

@@ -1,0 +1,46 @@
+name: Assist Request Tuner
+version: "0.5.0"
+slug: assist_ar_tuner
+description: Find the voice requests your LLM handled that Home Assistant could answer itself, and fix them.
+url: https://github.com/rb1980/assist-request-tuner
+arch:
+  - amd64
+  - aarch64
+image: ghcr.io/rb1980/ar-tuner-{arch}
+init: false
+startup: application
+boot: auto
+ingress: true
+ingress_port: 7380
+# Watchdog (Info tab) restarts the App when this stops answering.
+watchdog: http://[HOST]:[PORT:7380]/healthz
+panel_icon: mdi:account-voice
+panel_title: Request Tuner
+homeassistant_api: true
+map:
+  - type: homeassistant_config
+    read_only: false
+ports:
+  7380/tcp: null
+ports_description:
+  7380/tcp: REST API and MCP for coding agents (needs the API token from Settings); off unless you set a port
+options:
+  llm_api_key: ""
+  llm_base_url: https://openrouter.ai/api/v1
+  diagnose_model: qwen/qwen3.8-27b
+  diagnose_daily_usd: 1.0
+  nightly_diagnose: false
+  ignore_pipelines: []
+  exclude_device_ids: []
+  retention_days: 365
+schema:
+  llm_api_key: password?
+  llm_base_url: url
+  diagnose_model: str
+  diagnose_daily_usd: float(0,100)
+  nightly_diagnose: bool
+  ignore_pipelines:
+    - str
+  exclude_device_ids:
+    - str
+  retention_days: int(1,3650)

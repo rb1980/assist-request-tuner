@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h1>Phrasing template library</h1>
+  <p>Versioned recipes create pre-checked drafts. No command is executed. Device-changing recipes require authorization before apply.</p>
+  {% if error %}<p class="danger">{{ error }}</p>{% endif %}
+  {% for recipe in recipes %}
+    <article>
+      <h2>{{ recipe.title }} · v{{ recipe.version }}</h2>
+      <p>{{ recipe.description }}</p>
+      {% if recipe.changes_devices %}<p class="danger">Changes devices</p>{% endif %}
+      <ul>
+        {% for sentence in recipe.sentences %}<li><code>{{ sentence }}</code></li>{% endfor %}
+      </ul>
+      <form method="post" action="{{ root }}/ui/templates/{{ recipe.id }}/draft">
+        {% if recipe.type == 'custom_sentence' %}
+          <p>Custom sentences extend {{ recipe.intent }} using Home Assistant's live area, entity and value lists. No area or light selection is needed. Applying writes the managed sentence file and reloads conversation; it never executes a voice command.</p>
+          {% if not status.writer.configured %}<p class="danger">{{ status.writer.state }}. Drafting and offline checks remain available.</p>{% endif %}
+        {% else %}
+          <label>Exposed entity
+            <select name="entity_id" required>
+              {% for entity in entities %}
+                {% if recipe.id == 'entity_reply' or entity.domain == 'climate' %}<option value="{{ entity.entity_id }}">{{ entity.name }}</option>{% endif %}
+              {% endfor %}
+            </select>
+          </label>
+        {% endif %}
+        {% if recipe.id == 'entity_reply' %}
+          <label>Alias<input name="alias" maxlength="100" value="Entity reply" required></label>
+          <label>Sentences (one per line, no wildcards or rule references)<textarea name="commands" required></textarea></label>
+          <label>Reply template (use entity)<textarea name="reply" maxlength="1000" required></textarea></label>
+          <button type="button" class="preview-reply">Preview reply</button><pre class="reply-preview"></pre>
+          <label>Unavailable reply (optional, plain text)<input name="unavailable_reply" maxlength="300"></label>
+        {% endif %}
+        <label>Test sentences (one per line; required for Entity reply, otherwise defaults to the selected example)<textarea name="sentences"></textarea></label>
+        <button>Pre-check and create draft</button>
+      </form>
+      <details>
+        <summary>Recipe definition</summary>
+        <pre>{{ recipe|pretty }}</pre>
+      </details>
+    </article>
+  {% endfor %}
+{% endblock %}

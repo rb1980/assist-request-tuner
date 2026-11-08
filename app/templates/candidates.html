@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h1>Candidates</h1>
+  <p>Home patterns handled by the LLM, ranked by count over 30 days.</p>
+  {% for c in candidates %}
+    <article>
+      <h2>{{ c.pattern }} <span class="badge">{{ c.count }}</span></h2>
+      <ul>
+        {% for example in c.examples %}
+          <li>{{ example }}</li>
+        {% endfor %}
+      </ul>
+      <p>{{ c.near_miss_text }}</p>
+      <form method="post" action="{{ root }}/ui/diagnose">
+        <input type="hidden" name="pattern" value="{{ c.pattern }}">
+        <button {% if not diagnose_config.key_configured %}disabled{% endif %}>Diagnose</button>
+      </form>
+      {% set diagnosis = c.diagnosis %}
+      {% include 'diagnosis_panel.html' %}
+      <details>
+        <summary>Devices, tools and near miss</summary>
+        <pre>{{ {'devices':c.devices,'tools':c.tools,'near_miss':c.near_miss}|pretty }}</pre>
+      </details>
+      {% for hint in c.suggestions %}
+        <p>{{ hint.kind }}</p>
+        <pre>{{ hint|pretty }}</pre>
+      {% endfor %}
+      {% set sentence=c.examples[0] %}
+      {% include 'matcher.html' %}
+      <p><a href="{{ root }}/make-local?sentence={{ sentence|urlencode }}">Make local</a> · <a href="{{ root }}/templates">Use a template</a> · <a href="{{ root }}/changes/new">Advanced JSON</a></p>
+      <form method="post" action="{{ root }}/ui/pattern">
+        <input type="hidden" name="pattern" value="{{ c.pattern }}">
+        <input type="hidden" name="ignored" value="true">
+        <button title="Removes it from Request Tuner's fix list only; Home Assistant isn't changed">🚫 Ignore</button>
+      </form>
+      <form method="post" action="{{ root }}/ui/pattern">
+        <input type="hidden" name="pattern" value="{{ c.pattern }}">
+        <label>
+          Topic
+          <select name="topic_override">
+            <option value="">Automatic</option>
+            <option>home</option>
+            <option>general</option>
+            <option>unknown</option>
+          </select>
+        </label>
+        <label>
+          Note
+          <input name="note">
+        </label>
+        <button>Set pattern topic</button>
+      </form>
+    </article>
+  {% else %}
+    <p>No candidates yet.</p>
+  {% endfor %}
+{% endblock %}

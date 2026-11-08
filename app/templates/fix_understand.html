@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block content %}
+  {% set step = 2 %}{% include 'fix_steps.html' %}
+  <p><a href="{{ root }}/">← Choose a different request</a></p>
+  <h1>Understand this request</h1>
+  <p class="quote">“{{ said }}”</p>
+  {% if now_local %}
+    <p class="card ok"><strong>Already fixed.</strong> Home Assistant handles this itself now: {{ now_local }}. Nothing more to do, unless you want another way to say it.</p>
+  {% endif %}
+  <section class="card">
+    <h2>What happened</h2>
+    <p>{{ asked }}. Home Assistant didn't recognise it, so the AI handled it{% if actions %} and did: <strong>{{ actions|join('; ') }}</strong>{% endif %}.</p>
+    {% if not actions %}<p class="meta">No AI device action was recorded. Its spoken reply alone does not confirm an action.</p>{% endif %}
+    {% if reply %}<p>It replied: “{{ reply }}”</p>{% endif %}
+    {% if others %}<p>Similar requests: {{ others|map('tojson')|join(', ') }}</p>{% endif %}
+  </section>
+  <section class="card">
+    <h2>What may have prevented a local match</h2>
+    {% if diagnosis and diagnosis.result %}
+      <span class="badge info">AI explanation · may need review</span><p>{{ diagnosis.result.why_missed }}</p>
+    {% else %}
+      <span class="badge">Built-in check</span><p>{{ near_miss }}</p>
+    {% endif %}
+    {% if working %}
+      <p>These ways of saying it already work:</p>
+      <ul>{% for s in working %}<li>“{{ s }}”</li>{% endfor %}</ul>
+    {% endif %}
+  </section>
+
+  <h2>{{ 'Other fixes' if now_local else 'Choose a fix' }}</h2>
+  {% for fix in fixes %}
+    <a class="card choice" href="{{ root }}/fix/change/{{ fix.change_id }}{{ '' if fix.draft else '/done' }}">
+      <span class="said">{{ fix.title }}</span>
+      <span class="meta">{{ fix.headline }}</span>
+      {% if fix.explanation %}<span class="meta">{{ fix.explanation }}</span>{% endif %}
+      <span class="badge {{ 'warn' if fix.changes_devices }}">{{ 'Changes devices' if fix.changes_devices else 'Answers or recognizes only' }}</span>
+      {% if not fix.draft %}<span class="badge">{{ fix.status }}</span>{% endif %}
+      <span class="go">{{ 'Review →' if fix.draft else 'See result →' }}</span>
+    </a>
+  {% endfor %}
+  {% for hint in aliases %}
+    {% for target in hint.targets %}
+      <form method="post" action="{{ root }}/fix/alias" class="card choice">
+        <input type="hidden" name="kind" value="{{ 'area_alias' if hint.slot == 'area' else 'entity_alias' }}">
+        <input type="hidden" name="target" value="{{ target.area_id if hint.slot == 'area' else target.entity_id }}">
+        <input type="hidden" name="alias" value="{{ hint.text }}">
+        <input type="hidden" name="sentence" value="{{ said }}">
+        <span class="said">Call {{ 'the ' ~ target.name ~ ' area' if hint.slot == 'area' else target.name }} “{{ hint.text }}” too</span>
+        <span class="meta">Adds a name, so Home Assistant knows what you mean. Quick fix, no AI needed.</span>
+        <button class="go">Review →</button>
+      </form>
+    {% endfor %}
+  {% endfor %}
+
+  {% if diagnosis and diagnosis.status in ['queued', 'running'] %}
+    <p class="card" data-diagnosis-id="{{ diagnosis.id }}" data-status="{{ diagnosis.status }}" aria-live="polite">
+      <span class="spinner"></span> The AI is looking for fixes. This takes about a minute; the page updates by itself.</p>
+  {% elif diagnosis and diagnosis.error %}
+    <p class="card bad">The AI analysis failed: {{ diagnosis.error }}</p>
+  {% elif diagnosis and diagnosis.result and not fixes %}
+    <p class="card">The AI found no safe fix. {{ diagnosis.result.notes }}</p>
+  {% endif %}
+  {% if not diagnosis or diagnosis.status not in ['queued', 'running'] %}
+    <section class="card">
+    <h2>AI analysis <span class="badge">Optional</span></h2>
+    {% set budget_exhausted = diagnose_config.daily_budget > 0 and diagnose_config.used_today >= diagnose_config.daily_budget %}
+    {% if budget_exhausted %}<p class="notice warning">The daily AI budget is exhausted. Built-in suggestions, manual editing, and recipes remain available. <a href="{{ root }}/settings#ai">Review budget settings</a></p>{% endif %}
+    {% if not diagnose_config.key_configured %}<p class="notice warning">AI analysis is off: {{ diagnose_config.off_reason }} <a href="{{ root }}/settings#ai">Check AI settings</a></p>{% endif %}
+    <form method="post" action="{{ root }}/fix/analyze" data-busy="Looking for fixes…">
+      <input type="hidden" name="{{ target_field }}" value="{{ target_value }}">
+      {% set tried = fixes and (fixes|map(attribute='state')|reject('in', ['failed', 'rolled_back'])|list|length == 0) %}
+      <button class="{{ 'primary' if (not fixes or tried) and not aliases else '' }}" {% if not diagnose_config.key_configured or budget_exhausted %}disabled title="{{ diagnose_config.off_reason }}"{% endif %}>
+        {{ 'Try a different fix with AI' if tried else 'Ask the AI again' if diagnosis else 'Find fixes with AI' }}</button>
+      <span class="meta">Uses {{ diagnose_config.model }} on {{ diagnose_config.host }}, {{ diagnose_config.estimate }}.</span>
+    </form>
+    <p class="meta">Analysis sends this transcript, assistant actions and replies, and exposed device and area names to the configured provider. {{ 'Scheduled nightly analysis is also enabled.' if diagnose_config.nightly else 'Scheduled nightly analysis is off.' }}</p>
+    </section>
+  {% endif %}
+  {% if hide_pattern %}
+    <form method="post" action="{{ root }}/fix/hide">
+      <input type="hidden" name="pattern" value="{{ hide_pattern }}">
+      <button class="link">Don't want to fix this? Ignore it</button>
+    </form>
+  {% endif %}
+  <p class="meta"><a href="{{ root }}/make-local?sentence={{ said|urlencode }}">Write a fix by hand</a> · <a href="{{ root }}/templates">Use a recipe</a></p>
+{% endblock %}

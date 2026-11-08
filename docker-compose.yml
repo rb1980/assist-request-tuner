@@ -1,0 +1,32 @@
+# Assist Request Tuner with Docker Compose (for Home Assistant OS / Supervised, the HA App is easier: see README).
+# 1. mkdir data && cp config.example.yaml data/config.yaml, then edit it (HA URL and token at least).
+# 2. docker compose up -d   (or `docker compose up -d --build` to build from source)
+# 3. Open http://<this host>:7380 and log in with ar_tuner.token from the config file.
+# Every value can also be set as an environment variable (see config.example.yaml); a .env file here is passed through.
+services:
+  ar-tuner:
+    image: ${AR_TUNER_IMAGE:-ghcr.io/rb1980/ar-tuner:latest}
+    build:
+      context: .
+      target: standalone
+    restart: unless-stopped
+    ports:
+      - "${AR_TUNER_BIND:-0.0.0.0}:${AR_TUNER_PORT:-7380}:7380"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      TZ: ${TZ:-UTC}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    volumes:
+      # Database, config.yaml and (for SFTP access) the SSH key. Must be writable by uid 10001.
+      - ${AR_TUNER_DATA:-./data}:/data
+      # Docker on the HA host? Mount HA's config folder and set home_assistant.config_access: local instead of SFTP:
+      # - /path/to/homeassistant/config:/homeassistant
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true

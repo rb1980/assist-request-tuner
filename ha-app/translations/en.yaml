@@ -1,0 +1,26 @@
+configuration:
+  llm_api_key:
+    name: AI API key
+    description: Optional. Key for an OpenAI-compatible API (OpenRouter by default) used by "Find fixes with AI". Leave empty to disable AI analysis.
+  llm_base_url:
+    name: AI API URL
+    description: Base URL of the OpenAI-compatible API.
+  diagnose_model:
+    name: AI model
+    description: Model that analyses missed requests. It needs tool calling.
+  diagnose_daily_usd:
+    name: Daily AI budget (USD)
+    description: AI analysis stops for the day after this estimated spend.
+  nightly_diagnose:
+    name: Analyse overnight
+    description: Look for fixes for the 5 most frequent missed requests at 03:00.
+  ignore_pipelines:
+    name: Pipelines to ignore
+    description: Names or ids of Assist pipelines whose requests are not collected, such as a test pipeline.
+  exclude_device_ids:
+    name: Devices to exclude from stats
+    description: Satellite device ids whose requests are kept but left out of the statistics.
+  retention_days:
+    name: Keep requests for (days)
+network:
+  7380/tcp: REST API and MCP port. Leave empty unless a coding agent needs it.

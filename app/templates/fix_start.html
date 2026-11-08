@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% macro hide(pattern) %}
+  <form method="post" action="{{ root }}/fix/hide" class="ignore">
+    <input type="hidden" name="pattern" value="{{ pattern }}">
+    <button class="link" title="Ignore requests like this. Home Assistant isn't changed.">Ignore</button>
+  </form>
+{% endmacro %}
+{% block content %}
+  {% set step = 1 %}{% include 'fix_steps.html' %}
+  <h1>Which request should Home Assistant handle itself?</h1>
+  {% if stats.local or stats.home_llm %}
+    <p class="lead">These home requests went to the AI instead, most frequent first. Review a request to find a local fix.</p>
+    <div class="card coverage"><div><strong>{{ '%.0f'|format(stats.home_coverage * 100) }}%</strong><p>Home Assistant answered {{ '%.0f'|format(stats.home_coverage * 100) }}% of home requests itself in the last 30 days.</p></div><a href="{{ root }}/stats">View stats</a></div>
+  {% elif candidates or recent %}
+    <p class="lead">These home requests went to the AI instead, most frequent first. Review a request to find a local fix.</p>
+  {% else %}
+    <p class="lead">No voice requests yet. Use Assist as usual: Request Tuner collects requests and lists the home requests that went to the AI.</p>
+    <p><a href="{{ root }}/settings#collection">Check collection settings</a></p>
+  {% endif %}
+  {% if fixed %}<p class="notice success">✓ {{ fixed }} other request{{ 's' if fixed != 1 }} from this list {{ 'are' if fixed != 1 else 'is' }} handled by Home Assistant now, thanks to earlier fixes.</p>{% endif %}
+  {% if candidates %}
+    <h2>Home requests to improve</h2>
+    <p class="meta">Ignore removes a request from this queue. You can undo it here or restore it from Ignored below.</p>
+    <section class="card request-list" aria-label="Home requests">
+    {% for c in candidates %}
+      <article class="request-row choice" data-pattern="{{ c.pattern }}">
+        <div class="request-copy"><h3>“{{ c.examples[0] }}”</h3><p class="meta">Asked {{ c.count }} time{{ 's' if c.count != 1 }} · {{ c.devices.keys()|join(', ') }}{% if c.last_at %} · {{ c.last_at|localtime }}{% endif %}</p>
+          {% if c.actions %}<p class="meta">Observed AI action: {{ c.actions|join('; ') }}</p>{% endif %}
+          {% if c.badge %}<span class="badge info">{{ c.badge }}</span>{% endif %}
+        </div>
+        <div class="actions"><a class="button" href="{{ root }}/fix/pattern?p={{ c.pattern|urlencode }}" aria-label="Fix “{{ c.examples[0] }}”">{{ 'Review' if c.go == 'Fix this →' else c.go }}</a>{{ hide(c.pattern) }}</div>
+      </article>
+    {% endfor %}
+    </section>
+  {% else %}
+    {% set why = [] %}
+    {% if fixed %}{% set _ = why.append(fixed ~ ' now handled by Home Assistant') %}{% endif %}
+    {% if done %}{% set _ = why.append(done|length ~ ' with a fix applied') %}{% endif %}
+    {% if hidden %}{% set _ = why.append(hidden|length ~ ' ignored') %}{% endif %}
+    {% if why or status.counts.requests %}<p class="card">{% if why %}Nothing left to fix here. The home requests that went to the AI are {{ why|join(', ') }}{{ ' (see below)' if done or hidden }}.{% else %}No home requests went to the AI in the last 30 days.{% endif %}{% if recent %} Other recent requests the AI answered are below.{% endif %}</p>{% endif %}
+  {% endif %}
+  {% if recent %}
+    <h2>Other recent requests the AI answered</h2>
+    <p class="meta">These may be general questions. Review the recorded request before choosing a fix.</p>
+    <section class="card request-list" aria-label="Other recent requests">
+      {% for r in recent %}<article class="request-row choice" data-pattern="{{ r.pattern }}"><div class="request-copy"><h3>“{{ r.transcript }}”</h3><p class="meta">{{ r.started_at|localtime }} · {{ r.device_name or 'Typed / unknown' }}</p></div><div class="actions"><a class="button" href="{{ root }}/fix/request/{{ r.id }}" aria-label="Fix “{{ r.transcript }}”">Review</a>{{ hide(r.pattern) }}</div></article>{% endfor %}
+    </section>
+  {% endif %}
+  {% if done %}
+    <details class="card"><summary>Fixed ({{ done|length }})</summary><p class="meta">Requests you've applied a fix for. Undo a fix on its page to bring the request back.</p>
+      {% for f in done %}<div class="row"><span>“{{ f.example }}”</span><span class="meta"><a href="{{ root }}/fix/change/{{ f.change_id }}/done">{{ f.title }}</a>{% if f.say %} · now say {% for s in f.say %}“{{ s }}”{{ ' or ' if not loop.last }}{% endfor %}{% endif %}</span></div>{% endfor %}
+    </details>
+  {% endif %}
+  {% if hidden %}
+    <details class="card"><summary>Ignored ({{ hidden|length }})</summary><p class="meta">History is kept for stats; Home Assistant isn't affected.</p>
+      {% for h in hidden %}<form method="post" action="{{ root }}/fix/unhide" class="row"><input type="hidden" name="pattern" value="{{ h.pattern }}"><span>“{{ h.example or h.pattern }}”</span><button class="link">Stop ignoring</button></form>{% endfor %}
+    </details>
+  {% endif %}
+{% endblock %}

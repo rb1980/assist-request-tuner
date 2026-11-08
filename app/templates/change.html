@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block content %}
+  {% if change.type == 'blueprint_instance' %}
+  <h2>Blueprint instance inputs</h2><pre>{{ change.payload.inputs|pretty }}</pre>
+  <h3>Reply preview</h3><p>{{ change.reply_preview }}</p>
+  {% endif %}
+  <h1>{{ change.title }}</h1>
+  <p>{{ change.type }} · {{ change.status }}</p>
+  <p>Source: {{ change.source or 'manual' }}{% if change.diagnosis_id %} · <a href="{{ root }}/diagnoses/{{ change.diagnosis_id }}">Diagnosis {{ change.diagnosis_id }}</a>{% endif %}</p>
+  {% if change.precheck and change.precheck.applicable %}
+    <p class="{{ '' if change.precheck.passed else 'danger' }}">Pre-check {{ 'passed' if change.precheck.passed else 'failed' }}: {{ change.precheck.matched }}/{{ change.precheck.total }}</p>
+    <details>
+      <summary>Offline hassil results</summary>
+      <pre>{{ change.precheck|pretty }}</pre>
+    </details>
+    <p>Offline matching checks sentence syntax and slots. Live HA tests still run after apply.</p>
+  {% endif %}
+  {% if change.capture_preview %}
+    <h2>Offline capture preview — last 90 days</h2>
+    <p>{{ change.capture_preview.checked }} distinct transcripts checked; {{ change.capture_preview.takes_from_llm }} taken from LLM handling.</p>
+    {% if change.capture_preview.steals_local %}
+      <p class="danger">Warning: {{ change.capture_preview.steals_local }} transcripts would be stolen from existing local handling. Narrow the sentences before applying.</p>
+    {% endif %}
+    {% for warning in change.capture_preview.warnings %}
+      <p class="danger">{{ warning.message }}: <code>{{ warning.sentence }}</code></p>
+    {% endfor %}
+    {% for error in change.capture_preview.errors %}
+      <p class="danger">Preview incomplete: {{ error }}</p>
+    {% endfor %}
+    <table>
+      <tr><th>Would capture</th><th>Current handling</th><th>Source / intent</th><th>Impact</th></tr>
+      {% for row in change.capture_preview.would_capture %}
+        <tr>
+          <td>{{ row.transcript }}</td><td>{{ row.handled_by }}</td>
+          <td>{{ row.source or '' }} {{ row.intent or '' }}</td>
+          <td>{{ 'steals_local' if row.steals_local else 'takes_from_llm' if row.takes_from_llm else '' }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+    <p>Offline capture predicts interception, not whether the actions can fulfill the request. Post-apply replay still runs.</p>
+  {% endif %}
+  {% if change.changes_devices %}
+    <p class="danger">Changes devices — explicit allow_device_actions is required.</p>
+  {% endif %}
+  {% if change.error %}
+    <p class="danger">{{ change.error }}</p>
+  {% endif %}
+  {% if change.type == 'custom_sentence' %}
+    <h2>Rendered custom-sentence file diff</h2>
+    <pre>{{ diff }}</pre>
+    <p>Back up the Request Tuner database and managed sentence file after apply or rollback.</p>
+  {% else %}
+    <p>After apply or rollback, snapshot HA config to the repo: <code>tools/ha-export.py automations</code></p>
+  {% endif %}
+  {% if change.status=='draft' %}
+    <details>
+      <summary>Advanced JSON editor</summary>
+      <form method="post" action="{{ root }}/ui/changes/{{ change.id }}/edit">
+        <textarea name="draft" rows="20">{{ draft|pretty }}</textarea>
+        <button>Save draft</button>
+      </form>
+    </details>
+    <form method="post" action="{{ root }}/ui/changes/{{ change.id }}/apply" data-confirm="Apply this change to Home Assistant? Tests and replay run after apply.">
+      {% if change.changes_devices %}
+        <label class="danger">
+          <input type="checkbox" name="allow_device_actions" value="true" required {% if change.allow_device_actions %}checked{% endif %}>
+          I authorize this automation to change devices
+        </label>
+      {% endif %}
+      <label>
+        <input type="checkbox" name="confirm_regressions" value="true">
+        I reviewed and accept regressions
+      </label>
+      <button>Apply and replay</button>
+    </form>
+  {% else %}
+    <form method="post" action="{{ root }}/ui/changes/{{ change.id }}/clone">
+      <button>Copy into new draft</button>
+    </form>
+    <form method="post" action="{{ root }}/ui/changes/{{ change.id }}/replay">
+      <input type="number" name="days" min="1" max="3650" value="30">
+      <button>Replay</button>
+    </form>
+    {% if change.status in ['applied','failed','applying'] %}
+      <form method="post" action="{{ root }}/ui/changes/{{ change.id }}/rollback" data-confirm="Restore the saved Home Assistant configuration?">
+        <label>
+          <input type="checkbox" name="force" value="true">
+          Force over later changes
+        </label>
+        <button>Roll back</button>
+      </form>
+    {% endif %}
+  {% endif %}
+  <h2>Payload</h2>
+  <pre>{{ change.payload|pretty }}</pre>
+  {% if change.type != 'custom_sentence' %}
+    <h2>Before / after diff</h2>
+    <pre>{{ diff }}</pre>
+  {% endif %}
+  <h2>Tests</h2>
+  <pre>{{ change.test_result|pretty }}</pre>
+  <h2>Replay: newly local and lost</h2>
+  {% if change.replay_result and change.replay_result.lost %}
+    <p class="danger">Regressions found. Review lost matches before explicitly confirming a new draft.</p>
+  {% endif %}
+  <pre>{{ change.replay_result|pretty }}</pre>
+  <details>
+    <summary>Audit log</summary>
+    <pre>{{ change.log|pretty }}</pre>
+  </details>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h1>History</h1>
+  <p class="lead">Every fix, newest first. Open one to see what it does or to undo it.</p>
+  {% for item in items %}
+    <a class="card choice small" href="{{ root }}/fix/change/{{ item.id }}{{ '' if item.status == 'draft' else '/done' }}">
+      <span class="said">{{ item.headline }}</span>
+      <span class="meta">{{ item.updated_at|localtime }} · <span class="{{ item.level }}">{{ item.status_words }}</span></span>
+    </a>
+  {% else %}
+    <p>No fixes yet.</p>
+  {% endfor %}
+{% endblock %}

@@ -1,0 +1,131 @@
+{
+ "entity": "automation.voice_room_temperature_and_humidity_local",
+ "state_attributes": {
+  "id": "1792361304655",
+  "last_triggered": "2026-10-19T20:55:43.118807+00:00",
+  "mode": "parallel",
+  "current": 0,
+  "max": 10,
+  "friendly_name": "Voice: room temperature and humidity (local)"
+ },
+ "config": {
+  "id": "1792361304655",
+  "alias": "Voice: room temperature and humidity (local)",
+  "description": "Answers temperature/humidity questions for known rooms straight from the sensors, without the LLM (HA's built-in agent matches these sentences first because the Local pipeline prefers local intents). Unknown rooms or phrasings fall through to the LLM agent, which uses script.home_readings.",
+  "triggers": [
+   {
+    "trigger": "conversation",
+    "id": "bedroom",
+    "command": [
+     "(what's|what is|whats) [the] (temperature|temp|humidity) [in|on|of] [the] bedroom",
+     "(what's|what is|whats) [the] bedroom (temperature|temp|humidity)",
+     "how (warm|cold|hot|humid|muggy) is [it] [in|on] [the] bedroom",
+     "[the] (temperature|humidity) [in|on] [the] bedroom"
+    ]
+   },
+   {
+    "trigger": "conversation",
+    "id": "living_room",
+    "command": [
+     "(what's|what is|whats) [the] (temperature|temp|humidity) [in|on|of] [the] living room",
+     "(what's|what is|whats) [the] living room (temperature|temp|humidity)",
+     "how (warm|cold|hot|humid|muggy) is [it] [in|on] [the] living room",
+     "[the] (temperature|humidity) [in|on] [the] living room"
+    ]
+   },
+   {
+    "trigger": "conversation",
+    "id": "den",
+    "command": [
+     "(what's|what is|whats) [the] (temperature|temp|humidity) [in|on|of] [the] (den|play room)",
+     "(what's|what is|whats) [the] (den|play room) (temperature|temp|humidity)",
+     "how (warm|cold|hot|humid|muggy) is [it] [in|on] [the] (den|play room)",
+     "[the] (temperature|humidity) [in|on] [the] (den|play room)"
+    ]
+   },
+   {
+    "trigger": "conversation",
+    "id": "outside",
+    "command": [
+     "(what's|what is|whats) [the] (temperature|temp|humidity) [in|on|of] [the] (outside|outdoors)",
+     "(what's|what is|whats) [the] (outside|outdoors) (temperature|temp|humidity)",
+     "how (warm|cold|hot|humid|muggy) is [it] [in|on] [the] (outside|outdoors)",
+     "[the] (temperature|humidity) [in|on] [the] (outside|outdoors)"
+    ]
+   },
+   {
+    "trigger": "conversation",
+    "id": "loft",
+    "command": [
+     "(what's|what is|whats) [the] (temperature|temp|humidity) [in|on|of] [the] loft",
+     "(what's|what is|whats) [the] loft (temperature|temp|humidity)",
+     "how (warm|cold|hot|humid|muggy) is [it] [in|on] [the] loft",
+     "[the] (temperature|humidity) [in|on] [the] loft"
+    ]
+   },
+   {
+    "trigger": "conversation",
+    "id": "house",
+    "command": [
+     "(what's|what is|whats) [the] (temperature|temp|humidity) [in|on|of] [the] (house|inside)",
+     "(what's|what is|whats) [the] (house|inside) (temperature|temp|humidity)",
+     "how (warm|cold|hot|humid|muggy) is [it] [in|on] [the] (house|inside)",
+     "[the] (temperature|humidity) [in|on] [the] (house|inside)"
+    ]
+   }
+  ],
+  "actions": [
+   {
+    "variables": {
+     "room_map": {
+      "bedroom": {
+       "t": "sensor.bedroom_bedroom_temp_temperature",
+       "h": "sensor.bedroom_bedroom_temp_humidity",
+       "where": "in the bedroom",
+       "label": "bedroom"
+      },
+      "living_room": {
+       "t": "sensor.living_room_living_room_temp_temperature",
+       "h": "sensor.living_room_living_room_temp_humidity",
+       "where": "in the living room",
+       "label": "living room"
+      },
+      "den": {
+       "t": "sensor.den_temp_temperature",
+       "h": "sensor.den_temp_humidity",
+       "where": "in the den",
+       "label": "den"
+      },
+      "outside": {
+       "t": "sensor.outside_temp_temperature",
+       "h": "sensor.outside_temp_humidity",
+       "where": "outside",
+       "label": "outside"
+      },
+      "loft": {
+       "t": "sensor.ac_infinity_control_temperature",
+       "h": "sensor.ac_infinity_control_humidity",
+       "where": "in the loft",
+       "label": "loft"
+      },
+      "house": {
+       "t": "sensor.thermostat_temperature",
+       "h": "",
+       "where": "in the house",
+       "label": "house"
+      }
+     }
+    }
+   },
+   {
+    "variables": {
+     "answer": "{%- set r = room_map[trigger.id] -%}\n{%- set s = trigger.sentence | lower -%}\n{%- set tv = states(r.t) -%}{%- set hv = states(r.h) if r.h else 'none' -%}\n{%- if 'humid' in s or 'muggy' in s -%}\n  {%- if is_number(hv) -%}It's {{ hv | float | round(0) | int }} percent humidity {{ r.where }}.\n  {%- elif not r.h -%}I don't have a humidity sensor {{ r.where }}{{ (', but it is ' ~ (tv | float | round(0) | int) ~ ' degrees') if is_number(tv) else '' }}.\n  {%- else -%}The {{ r.label }} humidity sensor isn't reporting right now.{%- endif -%}\n{%- else -%}\n  {%- if is_number(tv) -%}It's {{ tv | float | round(0) | int }} degrees {{ r.where }}{{ (', ' ~ (hv | float | round(0) | int) ~ ' percent humidity') if is_number(hv) else '' }}.\n  {%- else -%}The {{ r.label }} temperature sensor isn't reporting right now.{%- endif -%}\n{%- endif -%}"
+    }
+   },
+   {
+    "set_conversation_response": "{{ answer }}"
+   }
+  ],
+  "mode": "parallel"
+ }
+}

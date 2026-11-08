@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h1>Changes</h1>
+  <a href="{{ root }}/make-local">Make local</a> · <a href="{{ root }}/templates">Template library</a> · <a href="{{ root }}/changes/new">Advanced JSON draft</a>
+  <p>HA cannot preview drafts. Apply → dry-run tests → replay → keep or roll back. Unconfirmed regressions restore the backup automatically.</p>
+  {% for c in changes %}
+    <article>
+      <a href="{{ root }}/changes/{{ c.id }}">{{ c.title }}</a>
+      <span class="badge">{{ c.status }}</span>
+      {% if c.changes_devices %}
+        <strong class="danger">
+          Changes devices
+        </strong>
+      {% endif %}
+    </article>
+  {% endfor %}
+{% endblock %}

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en" data-root="{{ root }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>Assist Request Tuner</title>
+    <link rel="stylesheet" href="{{ root }}/static/style.css">
+    <script defer src="{{ root }}/static/app.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    {% set path = request.url.path if request is defined else '/' %}
+    {% set active = 'settings' if '/settings' in path else 'history' if '/history' in path else 'stats' if '/stats' in path else 'fix' if path in ['/', root ~ '/'] or '/fix/' in path else 'advanced' %}
+    <header>
+      <div class="topbar">
+        <a class="brand" href="{{ root }}/"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 11 12 3l9 8v10H3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 14v3m4-7v7m4-4v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Request Tuner</span></a>
+        <span class="connection"><span class="status-dot {{ 'unavailable' if not status.ha_connected }}" aria-hidden="true"></span>{{ 'Connected to Home Assistant' if status.ha_connected else 'Home Assistant disconnected' }}</span>
+      </div>
+      <nav class="navigation" aria-label="Main navigation">
+        {% for key, label, url in [('fix', 'Fix requests', '/'), ('history', 'History', '/history'), ('stats', 'Stats', '/stats'), ('settings', 'Settings', '/settings')] %}
+          <a href="{{ root }}{{ url }}" {{ 'aria-current=page' if active == key }}>{{ label }}</a>
+        {% endfor %}
+        <details class="advanced">
+          <summary {{ 'class=active' if active == 'advanced' }}>Advanced <span aria-hidden="true">▾</span></summary>
+          <div class="menu">
+            {% for label, url in [('Requests', 'requests'), ('Candidates', 'candidates'), ('Intents', 'intents'), ('Changes', 'changes'), ('Recipes', 'templates'), ('Custom sentences', 'sentences')] %}<a href="{{ root }}/{{ url }}">{{ label }}</a>{% endfor %}
+          </div>
+        </details>
+      </nav>
+    </header>
+    <main id="main" tabindex="-1" class="{{ 'wide' if active == 'advanced' else '' }}">
+      {% if status.ha_connected is defined and not status.ha_connected and active != 'settings' and path != root ~ '/login' %}
+        <aside class="notice warning" role="status"><strong>Home Assistant is unavailable.</strong> Cached requests and saved drafts remain available. Dependent actions need a connection.<br>Last successful collection: {{ status.last_poll|localtime }}. <a href="{{ root }}/settings#connection">Check connection settings</a></aside>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+    <footer>
+      <span>{{ 'Home Assistant App' if root else 'Sidecar' }} · {{ status.collector }} · Recognition checks do not execute device commands.</span>
+      <div class="footer-actions">
+        <label for="theme">Appearance</label><select id="theme" aria-label="Appearance"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select>
+        {% if not root and path != '/login' %}<form method="post" action="{{ root }}/logout"><button class="link">Log out</button></form>{% endif %}
+      </div>
+    </footer>
+    <div id="live-status" class="sr-only" role="status" aria-live="polite"></div>
+  </body>
+</html>

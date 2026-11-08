@@ -1,0 +1,139 @@
+{
+ "events": [
+  {
+   "type": "run-start",
+   "data": {
+    "pipeline": "01m5aw7rdehyk74m2bp9bex40b",
+    "language": "en",
+    "conversation_id": "01M6ENZKF63T4EAEK9WDSM27NR",
+    "runner_data": {
+     "stt_binary_handler_id": 2,
+     "timeout": 300
+    },
+    "tts_output": {
+     "token": "REDACTED.mp3",
+     "url": "/api/tts_proxy/REDACTED.mp3",
+     "mime_type": "audio/mpeg",
+     "stream_response": true
+    }
+   },
+   "timestamp": "2026-11-02T17:47:43.975153+00:00"
+  },
+  {
+   "type": "stt-start",
+   "data": {
+    "engine": "stt.fluid_speech_mini",
+    "metadata": {
+     "language": "en",
+     "format": "wav",
+     "codec": "pcm",
+     "bit_rate": 16,
+     "sample_rate": 16000,
+     "channel": 1
+    },
+    "audio_processing": {
+     "requires_external_vad": true,
+     "prefers_auto_gain_enabled": true,
+     "prefers_noise_reduction_enabled": true
+    }
+   },
+   "timestamp": "2026-11-02T17:47:43.975215+00:00"
+  },
+  {
+   "type": "stt-vad-start",
+   "data": {
+    "timestamp": 1110
+   },
+   "timestamp": "2026-11-02T17:47:45.048023+00:00"
+  },
+  {
+   "type": "stt-vad-end",
+   "data": {
+    "timestamp": 3270
+   },
+   "timestamp": "2026-11-02T17:47:47.212917+00:00"
+  },
+  {
+   "type": "stt-end",
+   "data": {
+    "stt_output": {
+     "text": "Turn on Sam's office."
+    }
+   },
+   "timestamp": "2026-11-02T17:47:47.949642+00:00"
+  },
+  {
+   "type": "intent-start",
+   "data": {
+    "engine": "conversation.local_llm_server_google_gemma_4_e4b_ai_agent",
+    "language": "en",
+    "intent_input": "Turn on Sam's office.",
+    "conversation_id": "01M6ENZKF63T4EAEK9WDSM27NR",
+    "device_id": "359bda8ac92542d1bc3f517c0f5abbad",
+    "satellite_id": null,
+    "prefer_local_intents": true
+   },
+   "timestamp": "2026-11-02T17:47:47.949693+00:00"
+  },
+  {
+   "type": "intent-end",
+   "data": {
+    "processed_locally": true,
+    "intent_output": {
+     "response": {
+      "speech": {
+       "plain": {
+        "speech": "Activated",
+        "extra_data": null
+       }
+      },
+      "card": {},
+      "language": "en",
+      "response_type": "action_done",
+      "data": {
+       "success": [
+        {
+         "name": "Sam's Work",
+         "type": "entity",
+         "id": "scene.rob_s_office"
+        }
+       ],
+       "failed": []
+      }
+     },
+     "conversation_id": "01M6ENZKF63T4EAEK9WDSM27NR",
+     "continue_conversation": false
+    }
+   },
+   "timestamp": "2026-11-02T17:47:48.089243+00:00"
+  },
+  {
+   "type": "tts-start",
+   "data": {
+    "engine": "tts.piper",
+    "language": "en_US",
+    "voice": "en_US-danny-low",
+    "tts_input": "Activated",
+    "acknowledge_override": true
+   },
+   "timestamp": "2026-11-02T17:47:48.089294+00:00"
+  },
+  {
+   "type": "tts-end",
+   "data": {
+    "tts_output": {
+     "media_id": "media-source://tts/-stream-/REDACTED.mp3",
+     "token": "REDACTED.mp3",
+     "url": "/api/tts_proxy/REDACTED.mp3",
+     "mime_type": "audio/mpeg"
+    }
+   },
+   "timestamp": "2026-11-02T17:47:48.089325+00:00"
+  },
+  {
+   "type": "run-end",
+   "data": null,
+   "timestamp": "2026-11-02T17:47:48.089335+00:00"
+  }
+ ]
+}

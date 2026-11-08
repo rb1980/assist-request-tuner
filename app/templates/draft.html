@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h1>Draft change</h1>
+  <p>Edit JSON, including target, payload and dry-run tests. New automation ids must begin with ar_tuner_.</p>
+  <form method="post" action="{{ root }}/ui/changes">
+    <textarea name="draft" rows="25" required>{{ draft|pretty }}</textarea>
+    <button>Save draft</button>
+  </form>
+{% endblock %}

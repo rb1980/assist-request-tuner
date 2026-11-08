@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h1>Welcome to Assist Request Tuner</h1>
+  <p>Enter your Request Tuner access token.</p>
+  <form method="post">
+    <label>
+      Token
+      <input type="password" name="token" required autocomplete="current-password">
+    </label>
+    <button>Log in</button>
+  </form>
+{% endblock %}

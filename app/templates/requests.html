@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h1>Requests</h1>
+  <form method="get" class="filters">
+    {% for name in ['q','handled_by','topic','source','device','pattern','since','until'] %}
+      <label>
+        {{ name }}
+        <input name="{{ name }}" value="{{ request.query_params.get(name,'') }}">
+      </label>
+    {% endfor %}
+    <label>
+      <input type="checkbox" name="include_excluded" value="true" {% if request.query_params.get('include_excluded')=='true' %}checked{% endif %}>
+      Include excluded
+    </label>
+    <button>Filter</button>
+  </form>
+  <div class="scroll">
+    <table>
+      <tr>
+        <th>Time</th>
+        <th>Device</th>
+        <th>Transcript</th>
+        <th>Handled by</th>
+        <th>Topic</th>
+        <th>Tools</th>
+        <th>Seconds</th>
+      </tr>
+      {% for row in rows %}
+        <tr>
+          <td>{{ row.started_at|localtime }}</td>
+          <td>{{ row.device_name or 'Typed / unknown' }}</td>
+          <td><a href="{{ root }}/requests/{{ row.id }}">{{ row.transcript or '(in progress)' }}</a>{% if row.excluded %} (excluded){% endif %}</td>
+          <td><span class="badge {{ row.handled_by }}">{{ row.handled_by }}</span></td>
+          <td>{{ row.effective_topic }}</td>
+          <td>{{ row.tool_count }}</td>
+          <td>{{ row.duration_s|round(2) if row.duration_s != none else '—' }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  </div>
+  <a href="{{ root }}{{ request.url.path }}?{{ request.url.include_query_params(offset=offset+50).query }}">Next page</a>
+{% endblock %}

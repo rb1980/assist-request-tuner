@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h1>{{ row.transcript }}</h1>
+  <p>{{ row.started_at|localtime }} · {{ row.device_name or 'Typed / unknown' }} · {{ row.handled_by }}</p>
+  {% if row.handled_by == 'llm' %}
+    <p>{{ row.near_miss_text }}</p>
+    {% if row.working_phrasings %}
+      <p>Say this instead, it works now:</p>
+      <ul>
+        {% for sentence in row.working_phrasings %}
+          <li>{{ sentence }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    <p><a href="{{ root }}/make-local?sentence={{ row.transcript|urlencode }}">Make local</a></p>
+    <form method="post" action="{{ root }}/ui/diagnose">
+      <input type="hidden" name="request_id" value="{{ row.id }}">
+      <button {% if not diagnose_config.key_configured %}disabled{% endif %}>Diagnose</button>
+    </form>
+    {% include 'diagnosis_panel.html' %}
+  {% endif %}
+  <h2>Reply</h2>
+  <p>{{ row.reply }}</p>
+  <form method="post" action="{{ root }}/ui/requests/{{ row.id }}/topic">
+    <label>
+      Topic override
+      <select name="topic_override">
+        <option value="">Automatic</option>
+        {% for topic in ['home','general','unknown'] %}
+          <option {% if row.topic_override==topic %}selected{% endif %}>{{ topic }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <button>Set topic</button>
+  </form>
+  <h2>Tools and results</h2>
+  <pre>{{ row.tools|pretty }}</pre>
+  <h2>Matcher / near miss</h2>
+  <pre>{{ row.matcher|pretty }}</pre>
+  <details>
+    <summary>Raw events</summary>
+    <pre>{{ row.raw_events|pretty }}</pre>
+  </details>
+  <details>
+    <summary>All request fields</summary>
+    <pre>{{ row|pretty }}</pre>
+  </details>
+{% endblock %}

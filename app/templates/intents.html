@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h1>Local intents</h1>
+  {% include 'matcher.html' %}
+  {% if intents.error %}
+    <p>{{ intents.error }}</p>
+  {% endif %}
+  {% for a in intents.automations %}
+    <article>
+      <h2>{{ a.alias }}</h2>
+      <p>{{ a.id }} · {{ 'Enabled' if a.enabled else 'Disabled' }}</p>
+      {% if a.blueprint %}<p>{{ a.label }} · {{ a.entity }}</p>{% endif %}
+      <ul>
+        {% for s in a.sentences %}
+          <li><code>{{ s }}</code></li>
+        {% endfor %}
+      </ul>
+    </article>
+  {% endfor %}
+  <h2>Built-in intents observed</h2>
+  <pre>{{ intents.builtin|default({})|pretty }}</pre>
+{% endblock %}

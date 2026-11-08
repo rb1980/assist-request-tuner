@@ -1,0 +1,52 @@
+{% if not diagnose_config.key_configured %}
+  <p>AI analysis is off: {{ diagnose_config.off_reason }} Fixes by hand and recipes still work.</p>
+{% endif %}
+{% if diagnosis %}
+  <section data-diagnosis-id="{{ diagnosis.id }}" data-status="{{ diagnosis.status }}">
+    <h3><a href="{{ root }}/diagnoses/{{ diagnosis.id }}">Diagnosis {{ diagnosis.id }}</a> · {{ diagnosis.status }}</h3>
+    <p>Estimated cost: ${{ '%.6f'|format(diagnosis.cost_estimate) }} · {{ diagnosis.tokens_in }} input / {{ diagnosis.tokens_out }} output tokens</p>
+    {% if diagnosis.status in ['queued', 'running'] %}
+      <p aria-live="polite">Analysis is {{ diagnosis.status }}. This page updates when it finishes.</p>
+    {% endif %}
+    {% if diagnosis.error %}
+      <p class="danger">{{ diagnosis.error }}</p>
+    {% endif %}
+    {% if diagnosis.result %}
+      <p><strong>{{ diagnosis.result.summary }}</strong></p>
+      <p>{{ diagnosis.result.why_missed }}</p>
+      <h4>Phrasings that already work</h4>
+      <ul>
+        {% for sentence in diagnosis.result.working_phrasings %}
+          <li>{{ sentence }}</li>
+        {% else %}
+          <li>No working phrasing was verified.</li>
+        {% endfor %}
+      </ul>
+      {% for fix in diagnosis.result.fixes %}
+        <article>
+          <h4>{{ fix.title }}</h4>
+          <p>{{ fix.explanation }}</p>
+          <p>Risk: {{ fix.risk }}</p>
+          {% if fix.changes_devices %}
+            <p class="danger">Changes devices — requires your explicit authorization before apply.</p>
+          {% endif %}
+          {% if fix.change_id %}
+            <a href="{{ root }}/changes/{{ fix.change_id }}">Open draft</a>
+          {% else %}
+            <p class="danger">Not drafted: {{ fix.validation_error }}</p>
+            <details>
+              <summary>Proposed change for manual correction</summary>
+              <pre>{{ fix.change|pretty }}</pre>
+            </details>
+            <a href="{{ root }}/changes/new">Create corrected draft in advanced editor</a>
+          {% endif %}
+        </article>
+      {% endfor %}
+      <p>{{ diagnosis.result.notes }}</p>
+    {% endif %}
+    <details>
+      <summary>Agent tool calls and short results</summary>
+      <pre>{{ diagnosis.steps|pretty }}</pre>
+    </details>
+  </section>
+{% endif %}

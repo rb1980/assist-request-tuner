@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+  {% set step = 3 %}{% include 'fix_steps.html' %}
+  {% if back %}<p><a href="{{ root }}{{ back }}">← Back to the choices</a></p>{% endif %}
+  <h1>Review this fix</h1>
+  <p class="lead">Check what will change before applying it to Home Assistant.</p>
+  <section class="card"><h2>What will change</h2><p>{{ info.headline }}</p><p class="meta">{{ info.scope }}</p><span class="badge {{ 'warn' if change.changes_devices else 'info' }}">{{ 'Can change devices' if change.changes_devices else 'Answers or recognizes only' }}</span></section>
+  {% if info.examples %}
+    <section class="card">
+      <h2>After this, you can say</h2>
+      <ul>{% for s in info.examples %}<li>“{{ s }}”</li>{% endfor %}</ul>
+    </section>
+  {% endif %}
+  <section class="card">
+    <h2>Checks</h2>
+    <ul class="checks">
+      {% if not checks %}<li>No offline recognition check is available for this change. Examples will be checked after applying.</li>{% endif %}
+      {% for level, text in checks %}<li class="{{ level }}">{{ text }}</li>{% endfor %}
+    </ul>
+  </section>
+  {% if editable %}
+    <details class="card">
+      <summary>Change the phrasings or examples</summary>
+      <form method="post" action="{{ root }}/fix/change/{{ change.id }}/edit" data-review-edit>
+        <label class="block">New phrasings, one per line. <span class="meta">[optional words], (this|that) for choices.</span>
+          <textarea name="add" rows="5" required>{{ change.payload.add|join('\n') }}</textarea></label>
+        <label class="block">Examples to test, one per line
+          <textarea name="examples" rows="4" required>{{ info.examples|join('\n') }}</textarea></label>
+        <button>Save and re-check</button>
+        <p class="meta" role="status" data-edit-status></p>
+      </form>
+    </details>
+  {% endif %}
+  <form method="post" action="{{ root }}/fix/change/{{ change.id }}/apply" class="apply">
+    {% if change.changes_devices %}
+      <label class="warn"><input type="checkbox" name="allow_device_actions" value="true" required> I'm OK with this changing devices</label>
+    {% endif %}
+    {% if blocked %}<p class="notice warning">This fix is blocked. Resolve the failed checks above, then re-check the draft. <a href="{{ root }}/settings#connection">Connection and file access settings</a> · <a href="{{ root }}/sentences">Review sentence file / import changes</a></p>{% endif %}
+    <button class="primary" data-blocked="{{ 'true' if blocked else 'false' }}" {% if blocked %}disabled{% endif %}>Apply to Home Assistant</button>
+    <span class="meta" role="status" data-apply-status>{{ 'Fix the failed check first.' if blocked else 'Takes a few seconds. If verification fails, Request Tuner attempts to restore the previous configuration. Check the result before trying again.' }}</span>
+  </form>
+  <details class="tech">
+    <summary>Technical details</summary>
+    <p><a href="{{ root }}/changes/{{ change.id }}">Open in the advanced editor</a> (change #{{ change.id }}, {{ change.type }})</p>
+    <pre>{{ change.payload|pretty }}</pre>
+  </details>
+{% endblock %}

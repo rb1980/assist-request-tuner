@@ -1,0 +1,8 @@
+<form class="matcher" method="post" action="{{ root }}/ui/match">
+  <label>
+    Test phrasing (one sentence per line)
+    <textarea name="sentences" required>{{ sentence|default('') }}</textarea>
+  </label>
+  <button>Dry-run matcher</button>
+  <pre class="result" aria-live="polite"></pre>
+</form>

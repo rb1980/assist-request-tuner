@@ -1,0 +1,54 @@
+# Assist Request Tuner configuration. Copy to <data folder>/config.yaml (mounted at /data/config.yaml) and edit.
+# Keep this file private (chmod 600): it holds tokens. Any value can be overridden by the environment
+# variable shown after it. Most of these can also be changed on the app's Settings page, which wins over this
+# file. As a Home Assistant App you don't need this file.
+
+home_assistant:
+  url: http://homeassistant.local:8123      # HA_URL
+  token: ""                                 # HA_TOKEN: long-lived access token of an ADMIN user (Profile > Security)
+  # websocket_url: ""                       # HA_WS_URL: only if it isn't <url>/api/websocket
+  # How the app writes its two files in HA's config folder (custom sentences and the voice-reply blueprint):
+  #   sftp  - over SFTP to the "Advanced SSH & Web Terminal" App (default)
+  #   local - the folder is mounted into the container at config_dir (Docker on the HA host)
+  #   none  - those fixes can be drafted and checked but not applied
+  config_access: sftp                       # HA_CONFIG_ACCESS
+  config_dir: /homeassistant                # HA_CONFIG_DIR: HA's config folder as seen over SFTP or inside the container
+  ssh:                                      # used when config_access is sftp
+    host: ""                                # HA_SSH_HOST: defaults to the host in url
+    port: 22                                # HA_SSH_PORT
+    user: root                              # HA_SSH_USER
+    key_file: /data/ha_ssh_key              # HA_SSH_KEY_FILE: a DEDICATED private key, mode 600
+    host_key: ""                            # HA_SSH_HOST_KEY: "ssh-ed25519 AAAA..." to pin; empty trusts the first key seen
+
+ar_tuner:
+  token: ""                                 # AR_TUNER_TOKEN: required; protects the web UI, REST API and MCP. Use a long random string.
+  timezone: UTC                             # TZ
+  # db_path: /data/ar_tuner.db            # DB_PATH
+
+collector:
+  poll_interval_s: 5                        # POLL_INTERVAL_S
+  ignore_pipelines: []                      # IGNORE_PIPELINES: pipeline names or ids to skip (e.g. a test pipeline)
+  exclude_device_ids: []                    # EXCLUDE_DEVICE_IDS: satellites whose requests are stored but excluded from stats
+  retention_days: 365                       # RETENTION_DAYS
+  store_raw_events: true                    # STORE_RAW_EVENTS
+  # home_keywords: [light, lamp, fan, ...]  # HOME_KEYWORDS: words that mark a request as about the home
+  # normalize_prefixes: [hey jarvis, ok nabu, please, can you, ...]   # NORMALIZE_PREFIXES
+
+changes:
+  read_only_services: []                    # READ_ONLY_SERVICES: extra services treated as read-only in automations
+
+# Optional: AI analysis ("Find fixes with AI"). Any OpenAI-compatible chat API with tool calling works.
+diagnose:
+  source: custom                            # AI_SOURCE: custom (base_url/api_key below) or ha (a Local OpenAI LLM server set up in HA; needs config folder access)
+  ha_server: ""                             # AI_HA_SERVER: with source ha and several servers, the config entry id to use (empty: the first)
+  base_url: https://openrouter.ai/api/v1    # LLM_BASE_URL
+  api_key: ""                               # LLM_API_KEY (OPENROUTER_API_KEY also accepted); empty disables AI analysis
+  model: qwen/qwen3.8-27b                   # DIAGNOSE_MODEL
+  provider: {zdr: true}                     # DIAGNOSE_PROVIDER: OpenRouter routing; zdr = zero data retention providers only (dropped by APIs that reject it)
+  reasoning: medium                         # DIAGNOSE_REASONING: low, medium, high, or default (send nothing)
+  daily_usd: 1.00                           # DIAGNOSE_DAILY_USD: stop for the day after this estimated spend; 0 = no limit
+  price_in: 0.20                            # DIAGNOSE_PRICE_IN: USD per million input tokens, for the estimate
+  price_out: 2.50                           # DIAGNOSE_PRICE_OUT
+  max_steps: 12                             # DIAGNOSE_MAX_STEPS
+  timeout_s: 300                            # DIAGNOSE_TIMEOUT_S
+  nightly: false                            # NIGHTLY_DIAGNOSE: analyse the top 5 requests at 03:00

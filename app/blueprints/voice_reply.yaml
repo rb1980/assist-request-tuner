@@ -1,0 +1,46 @@
+# Managed by Assist Request Tuner (https://github.com/rb1980/assist-request-tuner), blueprint version 1. Edits here are overwritten.
+blueprint:
+  name: Voice reply (Assist Request Tuner)
+  description: >-
+    Answer a spoken question about one entity with a fixed spoken reply. Read-only: it only sets the conversation response.
+  domain: automation
+  author: Assist Request Tuner
+  homeassistant:
+    min_version: 2024.10.0
+  input:
+    sentences:
+      name: Sentences
+      description: Phrases that trigger the reply (template sentence syntax, no punctuation).
+      selector:
+        text:
+          multiple: true
+    entity:
+      name: Entity
+      selector:
+        entity: {}
+    reply:
+      name: Reply
+      description: Spoken reply template. Use `entity` for the entity id.
+      selector:
+        text:
+          multiline: true
+    unavailable_reply:
+      name: Reply when unavailable
+      default: "Sorry, I can't reach that device right now."
+      selector:
+        text: {}
+mode: parallel
+variables:
+  entity: !input entity
+  unavailable_reply: !input unavailable_reply
+triggers:
+  - trigger: conversation
+    command: !input sentences
+actions:
+  - if:
+      - condition: template
+        value_template: "{{ states(entity) in ['unavailable', 'unknown'] }}"
+    then:
+      - set_conversation_response: "{{ unavailable_reply }}"
+    else:
+      - set_conversation_response: !input reply

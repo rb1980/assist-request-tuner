@@ -1,0 +1,7 @@
+<nav aria-label="Fix progress">
+  <ol class="steps">
+    {% for label in ['Choose request', 'Understand', 'Review', 'Result'] %}
+      <li class="{{ 'current' if loop.index == step else 'done' if loop.index < step else '' }}" {{ 'aria-current=step' if loop.index == step }}><span class="step-number" aria-hidden="true">{{ '✓' if loop.index < step else loop.index }}</span><span class="step-label">{{ label }}</span><span class="sr-only">{{ ' (complete)' if loop.index < step }}</span></li>
+    {% endfor %}
+  </ol>
+</nav>

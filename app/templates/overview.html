@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h1>More requests handled locally</h1>
+  <p class="lead">Last 30 days · Voice requests · Test traffic excluded</p>
+  <section class="card">
+  <h2>Home coverage</h2>
+  <div class="headline">
+    {{ '%.1f'|format(stats.home_coverage * 100) }}%
+  </div>
+  <p class="meta">Share of home requests handled locally. General questions are excluded from this percentage.</p>
+  </section>
+  <section class="card"><h2>All voice requests</h2>
+  <p>{{ stats.requests }} requests · {{ stats.local }} local · {{ stats.llm }} AI</p>
+  <p class="meta">Counts below include all voice requests, including general questions.</p></section>
+  <section class="card">
+  <h2>Collector</h2>
+  <p>{{ status.collector }} · Last successful poll: {{ status.last_poll|localtime }} · {{ status.counts.requests }} stored</p>
+  </section>
+  <section class="card"><h2>Local and AI by day</h2>
+  {% for day, s in stats.per_day.items() %}
+    <div class="day">
+      <span>{{ day }}</span>
+      <div class="bar" role="img" aria-label="{{ day }}: {{ s.local }} local, {{ s.llm }} AI">
+        <span class="local" style="width:{{ s.local_percent }}%">{{ s.local }}</span>
+        <span class="llm" style="width:{{ s.llm_percent }}%">{{ s.llm }}</span>
+      </div>
+    </div>
+  {% endfor %}
+  {% if not stats.per_day %}<p class="meta">No voice requests recorded in this period.</p>{% endif %}
+  </section>
+  <section class="card"><h2>Devices</h2>
+  <div class="scroll">
+  <table>
+    <tr>
+      <th>Device</th>
+      <th>Requests</th>
+      <th>Local</th>
+      <th>AI</th>
+    </tr>
+    {% for name,s in stats.per_device.items() %}
+      <tr>
+        <td>{{ name }}</td>
+        <td>{{ s.requests }}</td>
+        <td>{{ s.local }}</td>
+        <td>{{ s.llm }}</td>
+      </tr>
+    {% endfor %}
+  </table>
+  </div></section>
+  <section class="card"><h2>Ignore test traffic</h2>
+  <p class="meta">Exclude testing from statistics for a limited time.</p>
+  {% for w in windows %}
+    <p>{{ w.reason }} until {{ w.end|localtime }}</p>
+    <form method="post" action="{{ root }}/ui/ignore">
+      <input type="hidden" name="stop" value="1">
+      <button>End ignore window</button>
+    </form>
+  {% else %}
+    <form method="post" action="{{ root }}/ui/ignore">
+      <label>
+        Minutes
+        <input type="number" name="minutes" value="30" min="1" max="1440">
+      </label>
+      <label>
+        Reason
+        <input name="reason" value="Testing">
+      </label>
+      <button>Start ignore window</button>
+    </form>
+  {% endfor %}
+  </section>
+  <details class="card">
+    <summary>All statistics</summary>
+    <pre>{{ stats|pretty }}</pre>
+  </details>
+{% endblock %}

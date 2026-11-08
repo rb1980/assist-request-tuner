@@ -1,0 +1,16 @@
+.test-tmp/
+.pytest_cache/
+__pycache__/
+docker-compose.override.yml
+ha_ssh_key
+/data/
+/config.yaml
+api_token
+.env
+.venv/
+.data/
+data/
+*.sqlite
+
+# Security documentation and reports (local only, not committed)
+/security/

@@ -1,0 +1,55 @@
+{
+ "results": [
+  {
+   "match": true,
+   "source": "trigger",
+   "sentence_template": "(what's|what is|whats) [the] (temperature|temp|humidity) [in|on|of] [the] (den|play room)"
+  },
+  {
+   "intent": {
+    "name": "HassTurnOn"
+   },
+   "slots": {
+    "name": "test lamp"
+   },
+   "details": {
+    "name": {
+     "name": "name",
+     "value": "Test Lamp",
+     "text": "test lamp"
+    }
+   },
+   "targets": {},
+   "match": true,
+   "sentence_template": "<turn> on [<the>] {name}",
+   "unmatched_slots": {},
+   "source": "builtin"
+  },
+  {
+   "intent": {
+    "name": "HassTurnOn"
+   },
+   "slots": {},
+   "details": {},
+   "targets": {},
+   "match": false,
+   "sentence_template": "[<turn>] [<the>] {area} [<the>] {name} [to] on",
+   "unmatched_slots": {
+    "area": "is ",
+    "name": "ac "
+   },
+   "source": "builtin"
+  },
+  {
+   "match": true,
+   "source": "trigger",
+   "sentence_template": "set [the] [loft] (porch|cable) fan [speed] to [speed] {speed}"
+  },
+  {
+   "match": true,
+   "source": "trigger",
+   "sentence_template": "[(can you|could you|would you)] [please] [(what's|what is|whats|how's|how is|what does|give me|tell me|read me|get me)] [the] [(local|current)] (weather|forecast|weather report|weather forecast) [(is going to be|going to be|look like|looks like|like|is)] [like] (for tomorrow|tomorrow)"
+  },
+  null
+ ]
+}

@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h1>Make local</h1>
+  <p>Create a draft, review its tests, then explicitly apply it. <a href="{{ root }}/templates">Use a tested template</a> or <a href="{{ root }}/changes/new">open the advanced JSON editor</a>.</p>
+  {% if error %}<p class="danger">{{ error }}</p>{% endif %}
+  <article>
+    <h2>Add an alias</h2>
+    <form method="post" action="{{ root }}/ui/make-local/alias">
+      <label>Search target (exposed entities or areas)
+        <input name="target" list="alias-targets" required placeholder="Type an entity or area name">
+      </label>
+      <datalist id="alias-targets">
+        {% for entity in entities %}
+          <option value="entity_alias:{{ entity.entity_id }}">{{ entity.name }} · {{ entity.area or 'No area' }}</option>
+        {% endfor %}
+        {% for area in areas %}
+          <option value="area_alias:{{ area.area_id }}">{{ area.name }}</option>
+        {% endfor %}
+      </datalist>
+      <label>Alias text <input name="alias" required></label>
+      <label>Must-match test <input name="sentence" value="{{ sentence }}" required></label>
+      <button>Create alias draft</button>
+    </form>
+  </article>
+  <article>
+    <h2>Add phrasings to an existing sentence automation</h2>
+    <form method="post" action="{{ root }}/ui/make-local/sentences">
+      <label>Automation
+        <select name="automation_id" required>
+          {% for automation in automations %}
+            <option value="{{ automation.id }}">{{ automation.alias }} ({{ automation.id }})</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>New command templates, one per line<textarea name="commands" required>{{ sentence }}</textarea></label>
+      <label>Test sentences, one per line<textarea name="sentences" required>{{ sentence }}</textarea></label>
+      <button>Pre-check and create draft</button>
+    </form>
+  </article>
+{% endblock %}

@@ -1,0 +1,385 @@
+{
+ "note": "first 10",
+ "devices": [
+  {
+   "area_id": null,
+   "configuration_url": null,
+   "config_entries": [
+    "01KYNFP7ANS6S9433PEJXY6R4T"
+   ],
+   "config_entries_subentries": {
+    "01KYNFP7ANS6S9433PEJXY6R4T": [
+     null
+    ]
+   },
+   "config_entry_id": "01KYNFP7ANS6S9433PEJXY6R4T",
+   "config_subentry_id": null,
+   "connections": [],
+   "created_at": 1785280011.606933,
+   "disabled_by": null,
+   "entry_type": "service",
+   "hw_version": null,
+   "id": "9d4d065bd32745e90fa38d52f52e2215",
+   "identifiers": [
+    [
+     "sun",
+     "01KYNFP7ANS6S9433PEJXY6R4T"
+    ]
+   ],
+   "labels": [],
+   "manufacturer": null,
+   "model": null,
+   "model_id": null,
+   "modified_at": 1785280011.606968,
+   "name_by_user": null,
+   "name": "Sun",
+   "parent_device_id": null,
+   "primary_config_entry": "01KYNFP7ANS6S9433PEJXY6R4T",
+   "serial_number": null,
+   "sw_version": null,
+   "via_device_id": null
+  },
+  {
+   "area_id": null,
+   "configuration_url": null,
+   "config_entries": [
+    "01KYNFP7F53JAY565NA8WY5QN5"
+   ],
+   "config_entries_subentries": {
+    "01KYNFP7F53JAY565NA8WY5QN5": [
+     null
+    ]
+   },
+   "config_entry_id": "01KYNFP7F53JAY565NA8WY5QN5",
+   "config_subentry_id": null,
+   "connections": [],
+   "created_at": 1785280011.821482,
+   "disabled_by": null,
+   "entry_type": "service",
+   "hw_version": null,
+   "id": "e8317162d5b4070d95a2c3cc9bd7d91f",
+   "identifiers": [
+    [
+     "hassio",
+     "core"
+    ]
+   ],
+   "labels": [],
+   "manufacturer": "Home Assistant",
+   "model": "Home Assistant Core",
+   "model_id": null,
+   "modified_at": 1790831432.482775,
+   "name_by_user": null,
+   "name": "Home Assistant Core",
+   "parent_device_id": null,
+   "primary_config_entry": "01KYNFP7F53JAY565NA8WY5QN5",
+   "serial_number": null,
+   "sw_version": "2026.9.4",
+   "via_device_id": null
+  },
+  {
+   "area_id": null,
+   "configuration_url": null,
+   "config_entries": [
+    "01KYNFP7F53JAY565NA8WY5QN5"
+   ],
+   "config_entries_subentries": {
+    "01KYNFP7F53JAY565NA8WY5QN5": [
+     null
+    ]
+   },
+   "config_entry_id": "01KYNFP7F53JAY565NA8WY5QN5",
+   "config_subentry_id": null,
+   "connections": [],
+   "created_at": 1785280011.821584,
+   "disabled_by": null,
+   "entry_type": "service",
+   "hw_version": null,
+   "id": "c43e7bf6cd8c5ef1077019ea7249c453",
+   "identifiers": [
+    [
+     "hassio",
+     "supervisor"
+    ]
+   ],
+   "labels": [],
+   "manufacturer": "Home Assistant",
+   "model": "Home Assistant Supervisor",
+   "model_id": null,
+   "modified_at": 1793316801.181312,
+   "name_by_user": null,
+   "name": "Home Assistant Supervisor",
+   "parent_device_id": null,
+   "primary_config_entry": "01KYNFP7F53JAY565NA8WY5QN5",
+   "serial_number": null,
+   "sw_version": "2026.10.5",
+   "via_device_id": null
+  },
+  {
+   "area_id": null,
+   "configuration_url": null,
+   "config_entries": [
+    "01KYNFP7F53JAY565NA8WY5QN5"
+   ],
+   "config_entries_subentries": {
+    "01KYNFP7F53JAY565NA8WY5QN5": [
+     null
+    ]
+   },
+   "config_entry_id": "01KYNFP7F53JAY565NA8WY5QN5",
+   "config_subentry_id": null,
+   "connections": [],
+   "created_at": 1785280011.821619,
+   "disabled_by": null,
+   "entry_type": "service",
+   "hw_version": null,
+   "id": "ba56a36399e5c89fb3ee467db77dc252",
+   "identifiers": [
+    [
+     "hassio",
+     "host"
+    ]
+   ],
+   "labels": [],
+   "manufacturer": "Home Assistant",
+   "model": "Home Assistant Host",
+   "model_id": null,
+   "modified_at": 1785280011.821626,
+   "name_by_user": null,
+   "name": "Home Assistant Host",
+   "parent_device_id": null,
+   "primary_config_entry": "01KYNFP7F53JAY565NA8WY5QN5",
+   "serial_number": null,
+   "sw_version": null,
+   "via_device_id": null
+  },
+  {
+   "area_id": null,
+   "configuration_url": "homeassistant://config/backup",
+   "config_entries": [
+    "01KYNFP7GAATXQ26E7YCHTM8GW"
+   ],
+   "config_entries_subentries": {
+    "01KYNFP7GAATXQ26E7YCHTM8GW": [
+     null
+    ]
+   },
+   "config_entry_id": "01KYNFP7GAATXQ26E7YCHTM8GW",
+   "config_subentry_id": null,
+   "connections": [],
+   "created_at": 1785280012.95118,
+   "disabled_by": null,
+   "entry_type": "service",
+   "hw_version": null,
+   "id": "4d5c4764b10234e9d26946b90479bc92",
+   "identifiers": [
+    [
+     "backup",
+     "backup_manager"
+    ]
+   ],
+   "labels": [],
+   "manufacturer": "Home Assistant",
+   "model": "Home Assistant Backup",
+   "model_id": null,
+   "modified_at": 1790831433.362006,
+   "name_by_user": null,
+   "name": "Backup",
+   "parent_device_id": null,
+   "primary_config_entry": "01KYNFP7GAATXQ26E7YCHTM8GW",
+   "serial_number": null,
+   "sw_version": "2026.9.4",
+   "via_device_id": null
+  },
+  {
+   "area_id": null,
+   "configuration_url": null,
+   "config_entries": [
+    "01KYP8NF28SBF29S2M6R0ZW7AK"
+   ],
+   "config_entries_subentries": {
+    "01KYP8NF28SBF29S2M6R0ZW7AK": [
+     null
+    ]
+   },
+   "config_entry_id": "01KYP8NF28SBF29S2M6R0ZW7AK",
+   "config_subentry_id": null,
+   "connections": [],
+   "created_at": 1785306201.568304,
+   "disabled_by": null,
+   "entry_type": "service",
+   "hw_version": null,
+   "id": "b6a6ff32888d06edd375bbcf05ac07d4",
+   "identifiers": [
+    [
+     "google_translate",
+     "01KYP8NF28SBF29S2M6R0ZW7AK"
+    ]
+   ],
+   "labels": [],
+   "manufacturer": "Google",
+   "model": "Google Translate TTS",
+   "model_id": null,
+   "modified_at": 1785306201.568721,
+   "name_by_user": null,
+   "name": "Google Translate en com",
+   "parent_device_id": null,
+   "primary_config_entry": "01KYP8NF28SBF29S2M6R0ZW7AK",
+   "serial_number": null,
+   "sw_version": null,
+   "via_device_id": null
+  },
+  {
+   "area_id": "outside",
+   "configuration_url": "https://www.met.no/en",
+   "config_entries": [
+    "01KYP8NFBX0SXM794G7KTTKYZ7"
+   ],
+   "config_entries_subentries": {
+    "01KYP8NFBX0SXM794G7KTTKYZ7": [
+     null
+    ]
+   },
+   "config_entry_id": "01KYP8NFBX0SXM794G7KTTKYZ7",
+   "config_subentry_id": null,
+   "connections": [],
+   "created_at": 1785306202.438056,
+   "disabled_by": "config_entry",
+   "entry_type": "service",
+   "hw_version": null,
+   "id": "d40fcbf16ade9191be773677b41e0f88",
+   "identifiers": [
+    [
+     "met",
+     "01KYP8NFBX0SXM794G7KTTKYZ7"
+    ]
+   ],
+   "labels": [],
+   "manufacturer": "Met.no",
+   "model": "Forecast",
+   "model_id": null,
+   "modified_at": 1789013747.094677,
+   "name_by_user": null,
+   "name": "Forecast",
+   "parent_device_id": null,
+   "primary_config_entry": "01KYP8NFBX0SXM794G7KTTKYZ7",
+   "serial_number": null,
+   "sw_version": null,
+   "via_device_id": null
+  },
+  {
+   "area_id": "office_bar",
+   "configuration_url": null,
+   "config_entries": [
+    "01KYP9FBDB6281RPZ7HSNJTSVM"
+   ],
+   "config_entries_subentries": {
+    "01KYP9FBDB6281RPZ7HSNJTSVM": [
+     null
+    ]
+   },
+   "config_entry_id": "01KYP9FBDB6281RPZ7HSNJTSVM",
+   "config_subentry_id": null,
+   "connections": [
+    [
+     "mac",
+     "02:00:00:62:73:1d"
+    ]
+   ],
+   "created_at": 1785307049.932378,
+   "disabled_by": null,
+   "entry_type": null,
+   "hw_version": "ESP25 01",
+   "id": "d4fd6d4c12ec9591a2c254aca9af01c8",
+   "identifiers": [],
+   "labels": [],
+   "manufacturer": "WiZ",
+   "model": "MHORGB",
+   "model_id": null,
+   "modified_at": 1785307878.854132,
+   "name_by_user": null,
+   "name": "Flex Strip",
+   "parent_device_id": null,
+   "primary_config_entry": "01KYP9FBDB6281RPZ7HSNJTSVM",
+   "serial_number": null,
+   "sw_version": "1.38.0",
+   "via_device_id": null
+  },
+  {
+   "area_id": "living_room",
+   "configuration_url": null,
+   "config_entries": [
+    "01KYPA2THPF3ZRJDQQHKDTM5V1"
+   ],
+   "config_entries_subentries": {
+    "01KYPA2THPF3ZRJDQQHKDTM5V1": [
+     null
+    ]
+   },
+   "config_entry_id": "01KYPA2THPF3ZRJDQQHKDTM5V1",
+   "config_subentry_id": null,
+   "connections": [
+    [
+     "mac",
+     "02:00:00:31:71:96"
+    ]
+   ],
+   "created_at": 1785307687.806515,
+   "disabled_by": null,
+   "entry_type": null,
+   "hw_version": "ESP25 01",
+   "id": "2ca55dc8eac9fdd3a13a8d75476c3cb4",
+   "identifiers": [],
+   "labels": [],
+   "manufacturer": "WiZ",
+   "model": "SHRGB",
+   "model_id": null,
+   "modified_at": 1785307763.554945,
+   "name_by_user": "Corner Light",
+   "name": "WiZ RGBW Tunable 88C8DC",
+   "parent_device_id": null,
+   "primary_config_entry": "01KYPA2THPF3ZRJDQQHKDTM5V1",
+   "serial_number": null,
+   "sw_version": "1.38.0",
+   "via_device_id": null
+  },
+  {
+   "area_id": "office_bar",
+   "configuration_url": null,
+   "config_entries": [
+    "01KYPAAX5KTWYPV4KHHRXHS7ZX"
+   ],
+   "config_entries_subentries": {
+    "01KYPAAX5KTWYPV4KHHRXHS7ZX": [
+     null
+    ]
+   },
+   "config_entry_id": "01KYPAAX5KTWYPV4KHHRXHS7ZX",
+   "config_subentry_id": null,
+   "connections": [
+    [
+     "mac",
+     "02:00:00:14:c8:92"
+    ]
+   ],
+   "created_at": 1785307952.474928,
+   "disabled_by": null,
+   "entry_type": null,
+   "hw_version": "ESP01 31",
+   "id": "a853a7f26ce215150278412c87826a96",
+   "identifiers": [],
+   "labels": [],
+   "manufacturer": "WiZ",
+   "model": "SHRGB1C",
+   "model_id": null,
+   "modified_at": 1785385113.51019,
+   "name_by_user": "Table Lamp",
+   "name": "WiZ RGBW Tunable 52895B",
+   "parent_device_id": null,
+   "primary_config_entry": "01KYPAAX5KTWYPV4KHHRXHS7ZX",
+   "serial_number": null,
+   "sw_version": "1.35.0",
+   "via_device_id": null
+  }
+ ]
+}

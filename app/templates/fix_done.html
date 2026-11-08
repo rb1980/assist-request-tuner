@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+  {% set step = 4 %}{% include 'fix_steps.html' %}
+  <div class="result-icon {{ level }}" aria-hidden="true">{{ '✓' if level == 'ok' else '!' if level == 'bad' else '↶' }}</div>
+  <h1 class="{{ level }}">{{ headline }}</h1>
+  {% if restore_failed %}<aside class="notice error"><strong>The current Home Assistant configuration is uncertain.</strong> Part of this change may remain. Check the connection and change diagnostics before trying another fix.</aside>{% endif %}
+  <section class="card">
+    <h2>{{ 'What changed' if change.status == 'applied' else 'Current state' }}</h2>
+    {% if change.status == 'applied' %}<p>{{ info.headline }}</p>
+    {% elif change.status == 'rolled_back' %}<p>The previous configuration was restored. This fix is no longer applied.</p>
+    {% elif restore_failed %}<p>Automatic restoration failed. Review the change details to determine what remains.</p>
+    {% elif change.status == 'failed' %}<p>The fix did not pass verification. The previous configuration was restored.</p>
+    {% else %}<p>The operation has not finished. <a href="{{ root }}/fix/change/{{ change.id }}/done">Refresh the result</a> or check the diagnostics.</p>{% endif %}
+    <p class="meta">Change #{{ change.id }} · {{ info.status }}</p>
+  </section>
+  {% if rows %}
+    <section class="card">
+      <h2>{{ 'Try it: recognition verified with Home Assistant' if change.status == 'applied' else 'Current recognition of your examples' }}</h2>
+      <ul class="example-results">
+        {% for r in rows %}<li><div class="example-heading"><span>“{{ r.sentence }}”</span><span class="badge {{ 'ok' if r.local else 'warn' }}">{{ '✓ Recognized locally' if r.local else 'Not recognized locally' }}</span></div><p>{{ r.handled }}</p>{% if r.answer %}<p><span class="label">Home Assistant says</span>“{{ r.answer }}”</p>{% elif r.note %}<p class="meta">{{ r.note }}</p>{% endif %}</li>{% endfor %}
+      </ul>
+      <p class="meta">Recognition checks do not execute device commands. Spoken answers are requested only for actions classified as read-only. Try the phrases with Assist to check the complete experience.</p>
+      {% if change.status == 'applied' and rows|selectattr('answer')|list %}<p>Does that answer the question? If not, undo it and ask for a different fix.</p>{% endif %}
+    </section>
+  {% elif info.examples %}<p class="notice warning">Current recognition could not be checked. <a href="{{ root }}/settings#connection">Check the Home Assistant connection</a> and refresh this result.</p>{% endif %}
+  {% if also %}<section class="card"><h2>Also covers {{ also|length }} other past request{{ 's' if also|length != 1 }}</h2><ul>{% for s in also %}<li>“{{ s }}”</li>{% endfor %}</ul><p class="meta">Based on recorded requests. Future wording can vary.</p></section>{% endif %}
+  {% if lost %}<section class="card warn"><h2>{{ 'No longer handled the same way' if change.status == 'applied' else 'Historical matches affected during verification' }}</h2><ul>{% for s in lost %}<li>“{{ s }}”</li>{% endfor %}</ul>{% if change.status == 'applied' %}<p>Review these changed matches and undo this change if needed.</p>{% endif %}</section>{% endif %}
+  <div class="actions">
+    {% if restore_failed %}<a class="button primary" href="{{ root }}/settings#connection">Check connection</a><a class="button" href="{{ root }}/changes/{{ change.id }}">Review change diagnostics</a>
+    {% else %}<a class="button primary" href="{{ root }}/">Fix another request</a>{% endif %}
+    {% if change.status == 'applied' or restore_failed %}<form method="post" action="{{ root }}/fix/change/{{ change.id }}/undo" data-confirm="Undo this change in Home Assistant? The previous configuration will be restored."><button>{{ 'Retry restoration' if restore_failed else 'Undo this change' }}</button></form>
+    {% elif change.status in ['failed', 'rolled_back'] and back %}<a class="button" href="{{ root }}{{ back }}">Try a different fix</a>{% endif %}
+  </div>
+  <details class="card tech"><summary>Technical details</summary><p><a href="{{ root }}/changes/{{ change.id }}">Open in the advanced editor</a> (change #{{ change.id }}, {{ change.type }})</p>{% if change.error %}<p class="bad">Error: {{ change.error }}</p>{% endif %}<pre>{{ change.payload|pretty }}</pre></details>
+{% endblock %}

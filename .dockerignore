@@ -1,0 +1,15 @@
+.venv
+.env
+.data
+.pytest_cache
+**/__pycache__
+tests
+.test-tmp
+
+ha_ssh_key*
+docker-compose.override.yml
+data
+config.yaml
+ha-app
+.github
+security/

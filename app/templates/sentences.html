@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h1>Custom sentences</h1>
+  <p class="lead">Extra ways of saying things that Home Assistant's built-in actions understand. They use HA's live lists, so new rooms, devices and names work automatically.</p>
+  <p class="meta">Request Tuner writes these to <code>{{ listing.writer.path }}</code> on Home Assistant. Add or remove phrasings here: each change is reviewed, applied, tested and can be undone, like any other fix.</p>
+  {% if error %}<p class="bad">{{ error }}</p>{% endif %}
+  {% for block in listing.blocks %}
+    <section class="card">
+      <h2>{{ words(block.intent)|capitalize }} <span class="meta">({{ block.intent }}{% if block.slots.domain %}, {{ block.slots.domain }} only{% endif %})</span></h2>
+      {% for sentence in block.sentences %}
+        <form method="post" action="{{ root }}/fix/sentences/remove" class="row">
+          <input type="hidden" name="block_id" value="{{ block.id }}">
+          <input type="hidden" name="intent" value="{{ block.intent }}">
+          <input type="hidden" name="sentence" value="{{ sentence }}">
+          <code>{{ sentence }}</code>
+          <button class="link">Remove…</button>
+        </form>
+      {% endfor %}
+      <details>
+        <summary>Add phrasings to this group</summary>
+        <form method="post" action="{{ root }}/fix/sentences/add">
+          <input type="hidden" name="block_id" value="{{ block.id }}">
+          <input type="hidden" name="intent" value="{{ block.intent }}">
+          {% include 'sentence_fields.html' %}
+          <button>Review →</button>
+        </form>
+      </details>
+    </section>
+  {% else %}
+    <p class="card">No custom sentences yet.</p>
+  {% endfor %}
+  <details class="card">
+    <summary>Add phrasings for another built-in action</summary>
+    <form method="post" action="{{ root }}/fix/sentences/add">
+      <label class="block">Action
+        <select name="intent">
+          {% for name in intents %}<option value="{{ name }}">{{ words(name) }} ({{ name }})</option>{% endfor %}
+        </select>
+      </label>
+      <label class="block">Only for
+        <select name="domain">
+          <option value="">any device</option>
+          {% for domain in ['light', 'fan', 'switch', 'cover', 'climate', 'media_player'] %}<option>{{ domain }}</option>{% endfor %}
+        </select>
+      </label>
+      {% include 'sentence_fields.html' %}
+      <button>Review →</button>
+    </form>
+  </details>
+  <details class="tech">
+    <summary>The file on Home Assistant</summary>
+    <p class="meta">Edits made directly to this file on Home Assistant are not lost: Request Tuner refuses to apply anything until you import them here.</p>
+    <pre>{{ current if current is not none else 'File absent or unavailable' }}</pre>
+    {% if preview %}
+      <h2>Import diff</h2>
+      <pre>{{ preview.diff or 'No changes' }}</pre>
+      <form method="post" action="{{ root }}/ui/sentences/import">
+        <input type="hidden" name="fingerprint" value="{{ preview.fingerprint }}">
+        <input type="hidden" name="confirm" value="true">
+        <button>Confirm import: replace Request Tuner's copy with the file</button>
+      </form>
+    {% else %}
+      <form method="post" action="{{ root }}/ui/sentences/import">
+        <button {% if not listing.writer.configured %}disabled{% endif %}>Import hand edits from Home Assistant (shows a diff first)</button>
+      </form>
+    {% endif %}
+  </details>
+{% endblock %}
