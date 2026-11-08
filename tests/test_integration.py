@@ -1,3 +1,4 @@
+import types
 import copy
 import json
 from datetime import datetime, timedelta, timezone
@@ -287,8 +288,10 @@ async def test_matcher_failure_retry_after_durable_capture(stack, fake_ha, monke
     assert {r['handled_by'] for r in db.rows('SELECT * FROM requests')} == {'local_intent', 'llm'}
 
 
-async def test_ten_minute_timeout_retention_and_ignore_pipeline(stack, fake_ha):
+async def test_ten_minute_timeout_retention_and_ignore_pipeline(stack, fake_ha, monkeypatch):
     settings, db, ha, _, _ = stack
+    # A host up for less than a day (a fresh CI runner): only the collector's clock, not asyncio's.
+    monkeypatch.setattr('app.collector.time', types.SimpleNamespace(monotonic=lambda: 100.0))
     settings.retention = 1
     fake_ha.runs = {'old': fixture('run_voice')}
     old_time = (datetime.now(timezone.utc) - timedelta(minutes=11)).isoformat()

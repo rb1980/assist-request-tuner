@@ -83,7 +83,7 @@ class Collector:
                 self.db.store_run(row, self.settings.store_raw)
         for row in self.db.rows("SELECT * FROM requests WHERE working_phrasings IS NULL AND handled_by='llm' AND status='complete'"):
             await ensure_working(self.db, self.ha, row)
-        if time.monotonic() - self.retention_at > 86400:
+        if not self.retention_at or time.monotonic() - self.retention_at > 86400:
             cutoff = (datetime.now(timezone.utc) - timedelta(days=self.settings.retention)).isoformat()
             self.db.execute('DELETE FROM requests WHERE started_at<?', (cutoff,))
             self.retention_at = time.monotonic()
