@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.1
+
+- Old requests are now cleaned up (retention) right after the App starts, not only once the host has been up for a
+  day.
+
 ## 0.5.0
 
 - First release: find the voice requests your LLM handled that Home Assistant could answer itself, and fix them with an

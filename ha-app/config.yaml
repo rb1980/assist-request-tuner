@@ -1,5 +1,5 @@
 name: Assist Request Tuner
-version: "0.5.0"
+version: "0.5.1"
 slug: assist_ar_tuner
 description: Find the voice requests your LLM handled that Home Assistant could answer itself, and fix them.
 url: https://github.com/rb1980/assist-request-tuner
