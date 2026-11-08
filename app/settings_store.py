@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 import httpx
 from . import config, ha_llm, llm
 from .config import Settings
+from .ha import HAError
 
 # (env name, label, kind, help). Kinds: text, url, secret, int, float, bool, list, choice:<a>|<b>.
 SECTIONS = [
@@ -250,10 +251,17 @@ async def check_ha(url, token):
 async def apply(settings, service):
     """Reload settings from every source into the shared object, then reconnect what depends on them."""
     fresh = Settings()
+    connection = (settings.ha_url, settings.ha_token)
     for item in fields(Settings):
         if item.name not in ('db_path', 'token'):   # the database and login token only change on restart
             setattr(settings, item.name, getattr(fresh, item.name))
-    await service.ha.reconfigure()
+    if (settings.ha_url, settings.ha_token) != connection:
+        # Only a new URL or token needs a new connection; connect now, so the page after saving shows the real state.
+        await service.ha.reconfigure()
+        try:
+            await service.ha.refresh(force=True)
+        except HAError:
+            pass   # shown as Disconnected, with the reason from the connection test
     service.changes.reconfigure_writer()
     await ha_llm.resolve(settings, service.changes.sentences.writer, force=True)
 

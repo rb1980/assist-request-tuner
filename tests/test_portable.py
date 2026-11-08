@@ -220,6 +220,27 @@ async def test_settings_save_pins_only_changed_fields(clean_env, fake_ha, monkey
             saved = sorted(json.loads((clean_env / 'settings.json').read_text())); assert saved == ['DIAGNOSE_MODEL', 'HA_TOKEN'], saved
 
 
+async def test_settings_save_keeps_or_renews_the_ha_connection(clean_env, fake_ha, monkeypatch):
+    # Saving an unrelated setting must not drop the connection (the page showed Disconnected until the next poll);
+    # a new URL or token reconnects before the page is shown again.
+    monkeypatch.setenv('HA_URL', fake_ha.url)
+    monkeypatch.setenv('HA_TOKEN', 'env-ha-placeholder')
+    monkeypatch.setenv('HA_CONFIG_ACCESS', 'none')
+    settings = Settings(token='api-placeholder', db_path=str(clean_env / 'db.sqlite'))
+    app = create_app(settings, start_collector=False)
+    async with app.router.lifespan_context(app):
+        ha = app.state.service.ha
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url='http://testserver') as client:
+            await client.post('/login', data={'token': 'api-placeholder'})
+            await ha.call('assist_pipeline/pipeline/list')
+            socket = ha.ws
+            form = {'HA_URL': fake_ha.url, 'HA_CONFIG_ACCESS': 'none', 'TZ': 'UTC', 'RETENTION_DAYS': '30'}
+            await client.post('/settings', data=form)
+            assert settings.retention == 30 and ha.ws is socket and app.state.service.status()['ha_connected']
+            await client.post('/settings', data=dict(form, HA_TOKEN='new-ha-placeholder'))
+            assert ha.ws is not None and ha.ws is not socket and app.state.service.status()['ha_connected']
+
+
 async def test_settings_test_buttons_use_unsaved_form_values(clean_env, fake_ha, fake_openai, monkeypatch):
     monkeypatch.setenv('HA_URL', fake_ha.url)
     monkeypatch.setenv('HA_TOKEN', 'env-ha-placeholder')
