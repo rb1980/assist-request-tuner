@@ -23,8 +23,11 @@ anything until you import your edits on its Custom sentences page.
 
 ## Coding agents (REST and MCP)
 
-Set a port for `7380/tcp` on the **Network** tab, then use the API token shown on the app's **Settings** page:
-`http://<home assistant>:<port>/api/v1/...` and the MCP endpoint `/mcp/`.
+Claude Code, Codex and other coding agents can use the app through MCP, for example to work through many requests at
+once or to design and test phrasings. Set a port for `7380/tcp` on the **Network** tab, then use the API token shown
+on the app's **Settings** page: `http://<home assistant>:<port>/api/v1/...` and the MCP endpoint `/mcp/`.
+Setup for each agent, use cases and every tool:
+[docs/API.md](https://github.com/rb1980/assist-request-tuner/blob/main/docs/API.md).
 
 ## Privacy
 

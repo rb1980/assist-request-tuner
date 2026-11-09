@@ -150,16 +150,18 @@ comes from; empty a field there to go back to the value below it.
 
 ## REST API and MCP
 
-Everything the web page does is also available to scripts and coding agents. All `/api/v1/*` and `/mcp/` calls need
-`Authorization: Bearer <token>`: `ar_tuner.token`, or in the App the token shown at the bottom of its Settings page (and
-set a port for `7380/tcp` on the App's **Network** tab). The OpenAPI docs are at `/docs`.
+Everything the web page does is also available to scripts and to coding agents such as Claude Code and Codex: work
+through a backlog of requests at once, investigate a pattern, design and test phrasings, or keep test sessions out of
+the statistics. All `/api/v1/*` and `/mcp/` calls need `Authorization: Bearer <token>`: `ar_tuner.token`, or in the
+App the token shown at the bottom of its Settings page (and set a port for `7380/tcp` on the App's **Network** tab).
 
 ```sh
-curl -H "Authorization: Bearer $TOKEN" http://<host>:7380/api/v1/status
-claude mcp add --transport http request-tuner http://<host>:7380/mcp/ --header "Authorization: Bearer $TOKEN"
+curl -H "Authorization: Bearer $AR_TUNER_TOKEN" http://<host>:7380/api/v1/status
+claude mcp add --transport http request-tuner http://<host>:7380/mcp/ --header "Authorization: Bearer $AR_TUNER_TOKEN"
+codex mcp add request-tuner --url http://<host>:7380/mcp/ --bearer-token-env-var AR_TUNER_TOKEN
 ```
 
-To keep test traffic out of the statistics, POST `{"minutes": 30, "reason": "testing"}` to `/api/v1/ignore`.
+**[docs/API.md](docs/API.md)** covers setup, use cases, every MCP tool and REST endpoint, and examples.
 
 ## Privacy and security
 
