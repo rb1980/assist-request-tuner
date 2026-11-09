@@ -161,7 +161,8 @@ claude mcp add --transport http request-tuner http://<host>:7380/mcp/ --header "
 codex mcp add request-tuner --url http://<host>:7380/mcp/ --bearer-token-env-var AR_TUNER_TOKEN
 ```
 
-**[docs/API.md](docs/API.md)** covers setup, use cases, every MCP tool and REST endpoint, and examples.
+- **[Coding agents (MCP)](docs/MCP.md)**: why use an agent, connecting Claude Code, Codex and others, and every tool.
+- **[REST API](docs/API.md)**: every endpoint, change payloads and examples.
 
 ## Privacy and security
 
