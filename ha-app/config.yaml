@@ -23,4 +23,4 @@ map:
 ports:
   7380/tcp: null
 ports_description:
-  7380/tcp: REST API and MCP for coding agents (needs the API token from Settings); off unless you set a port
+  7380/tcp: "REST API and MCP for coding agents: off while empty. Enter a host port (for example 7380) to turn them on."

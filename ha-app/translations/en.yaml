@@ -1,2 +1,2 @@
 network:
-  7380/tcp: REST API and MCP port. Leave empty unless a coding agent needs it.
+  7380/tcp: "REST API and MCP for coding agents: off while empty. To turn them on, enter a port on your Home Assistant host (for example 7380), save, and use the API token from the app's Settings page."
