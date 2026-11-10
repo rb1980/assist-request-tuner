@@ -117,7 +117,7 @@
     {% endfor %}
     {% if api_token %}<p class="meta">Running as a Home Assistant App: the connection to Home Assistant and its config folder are set up automatically.</p>{% endif %}
     <p class="meta">Test checks the values in the form, before you save them.
-      Saved settings take priority over the config file, environment variables and the App's Configuration tab.
+      Saved settings take priority over the config file and environment variables.
       Empty a field to go back to that value. Secrets are never shown: leave them empty to keep the current one.</p>
     <div class="actions"><button class="primary">Save and apply</button><span class="meta" data-settings-dirty>Changes apply without a restart.</span></div>
   </form>

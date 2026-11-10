@@ -145,10 +145,13 @@ its config folder, the AI analysis, and what to collect. Each section has a **Te
 before you save. Changes apply immediately, without a restart. Secrets are never shown again once saved; they are kept
 in `/data/settings.json` (mode 600).
 
-Every setting can also come from a file or the environment. [`config.example.yaml`](config.example.yaml) lists them all
-with their defaults and environment variable names. From lowest to highest priority: defaults, the config file, the
-App's **Configuration** tab, environment variables, then the Settings page. The Settings page shows where each value
-comes from; empty a field there to go back to the value below it.
+In the Home Assistant App the Settings page is the only place: the App has no **Configuration** tab options (only
+**Network**, for the API port).
+
+With Docker Compose, every setting can also come from a file or the environment. [`config.example.yaml`](config.example.yaml)
+lists them all with their defaults and environment variable names. From lowest to highest priority: defaults, the
+config file, environment variables, then the Settings page. The Settings page shows where each value comes from; empty
+a field there to go back to the value below it.
 
 ## REST API and MCP
 

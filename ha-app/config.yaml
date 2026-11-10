@@ -24,23 +24,3 @@ ports:
   7380/tcp: null
 ports_description:
   7380/tcp: REST API and MCP for coding agents (needs the API token from Settings); off unless you set a port
-options:
-  llm_api_key: ""
-  llm_base_url: https://openrouter.ai/api/v1
-  diagnose_model: qwen/qwen3.8-27b
-  diagnose_daily_usd: 1.0
-  nightly_diagnose: false
-  ignore_pipelines: []
-  exclude_device_ids: []
-  retention_days: 365
-schema:
-  llm_api_key: password?
-  llm_base_url: url
-  diagnose_model: str
-  diagnose_daily_usd: float(0,100)
-  nightly_diagnose: bool
-  ignore_pipelines:
-    - str
-  exclude_device_ids:
-    - str
-  retention_days: int(1,3650)

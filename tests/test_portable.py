@@ -20,7 +20,7 @@ def clean_env(monkeypatch, tmp_path):
     return tmp_path
 
 
-def test_precedence_file_then_options_then_env(clean_env, monkeypatch):
+def test_precedence_file_then_env(clean_env, monkeypatch):
     (clean_env / 'config.yaml').write_text('home_assistant:\n  url: http://ha.example:8123\n  ssh: {port: 2222}\n'
                                            'collector:\n  ignore_pipelines: [Test pipeline]\ndiagnose:\n  model: file-model\n'
                                            '  provider: {zdr: false}\n  nightly: true\n')
@@ -29,10 +29,44 @@ def test_precedence_file_then_options_then_env(clean_env, monkeypatch):
     assert s.diagnose_provider == {'zdr': False} and s.nightly_diagnose is True
     assert s.ha_ssh_host == 'ha.example'  # derived from the HA URL
     (clean_env / 'options.json').write_text(json.dumps({'diagnose_model': 'option-model'}))
-    assert Settings().diagnose_model == 'option-model'
+    assert Settings().diagnose_model == 'file-model'   # the App's old Configuration tab is no longer a source
     monkeypatch.setenv('DIAGNOSE_MODEL', 'env-model')
     monkeypatch.setenv('OPENROUTER_API_KEY', 'old-name-placeholder')
     assert Settings().diagnose_model == 'env-model' and Settings().openrouter_api_key == 'old-name-placeholder'
+
+
+def test_old_app_options_move_to_saved_settings_once(clean_env):
+    (clean_env / 'settings.json').write_text(json.dumps({'RETENTION_DAYS': '30'}))
+    (clean_env / 'options.json').write_text(json.dumps({
+        'llm_api_key': 'key-placeholder', 'llm_base_url': 'https://openrouter.ai/api/v1', 'diagnose_model': 'my/model',
+        'diagnose_daily_usd': 2.5, 'nightly_diagnose': True, 'ignore_pipelines': ['Test', 'Other'], 'exclude_device_ids': [],
+        'retention_days': 90}))
+    assert sorted(config.migrate_options()) == ['DIAGNOSE_DAILY_USD', 'DIAGNOSE_MODEL', 'IGNORE_PIPELINES', 'LLM_API_KEY', 'NIGHTLY_DIAGNOSE']
+    saved = json.loads((clean_env / 'settings.json').read_text())
+    assert saved == {'RETENTION_DAYS': '30', 'LLM_API_KEY': 'key-placeholder', 'DIAGNOSE_MODEL': 'my/model', 'DIAGNOSE_DAILY_USD': '2.5',
+                     'NIGHTLY_DIAGNOSE': 'true', 'IGNORE_PIPELINES': 'Test,Other'}   # defaults skipped, Settings page kept
+    assert oct((clean_env / 'settings.json').stat().st_mode & 0o777) == '0o600'
+    s = Settings()
+    assert (s.diagnose_model, s.diagnose_daily_usd, s.nightly_diagnose, s.ignore_pipelines, s.retention) == ('my/model', 2.5, True, ['Test', 'Other'], 30)
+    (clean_env / 'settings.json').write_text('{}')
+    assert config.migrate_options() == [] and json.loads((clean_env / 'settings.json').read_text()) == {}   # only once
+
+
+def test_old_app_options_read_from_the_supervisor_when_the_file_was_emptied(clean_env, monkeypatch):
+    monkeypatch.setenv('SUPERVISOR_TOKEN', 'supervisor-placeholder')
+    (clean_env / 'options.json').write_text('{}')   # what the Supervisor writes once the App has no options
+    answers = iter([httpx.ConnectError('down'), None])
+    def fake_get(url, **kwargs):
+        assert url == 'http://supervisor/addons/self/info' and kwargs['headers']['Authorization'] == 'Bearer supervisor-placeholder'
+        if (error := next(answers)) is not None:
+            raise error
+        return httpx.Response(200, json={'data': {'options': {'retention_days': 77, 'ignore_pipelines': ['Migration Test']}}},
+                              request=httpx.Request('GET', url))
+    monkeypatch.setattr(config.httpx, 'get', fake_get)
+    assert config.migrate_options() == [] and not (clean_env / 'options_migrated').exists()   # Supervisor down: retried later
+    assert sorted(config.migrate_options()) == ['IGNORE_PIPELINES', 'RETENTION_DAYS']
+    assert json.loads((clean_env / 'settings.json').read_text()) == {'IGNORE_PIPELINES': 'Migration Test', 'RETENTION_DAYS': '77'}
+    assert config.migrate_options() == []
 
 
 def test_neutral_defaults(clean_env):

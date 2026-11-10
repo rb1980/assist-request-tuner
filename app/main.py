@@ -11,7 +11,7 @@ from fastapi.templating import Jinja2Templates
 from pydantic import ValidationError
 from . import names
 from . import __version__, ha_llm, names
-from .config import Settings
+from .config import Settings, migrate_options
 from .db import DB
 from .ha import HA, HAError
 from .collector import Collector
@@ -27,7 +27,11 @@ INGRESS_PROXY = '172.30.32.2'  # the Supervisor's ingress proxy address on the h
 
 
 def create_app(settings=None, ha=None, start_collector=True):
-    settings = settings or Settings()
+    if settings is None:
+        copied = migrate_options()   # the App's old Configuration tab, once
+        settings = Settings()
+        if copied:
+            logging.getLogger(names.LOGGER).warning('Moved %s from the App Configuration tab to the Settings page', ', '.join(copied))
     # The factory stays importable for tooling; startup refuses missing credentials.
     @asynccontextmanager
     async def lifespan(app):

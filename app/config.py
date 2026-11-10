@@ -1,9 +1,9 @@
-"""Settings: built-in defaults < config file (YAML) < Home Assistant App options < environment variables < saved in the UI.
+"""Settings: built-in defaults < config file (YAML) < environment variables < saved in the UI.
 
 The config file is AR_TUNER_CONFIG (default /data/config.yaml); see config.example.yaml for every key. Each setting also
-has an environment variable (the names below), and as a Home Assistant App the options page writes /data/options.json
-using the same names in lower case. Values saved on the Settings page (AR_TUNER_SETTINGS, default /data/settings.json,
-same names) win over everything, so the files only provide the starting values. Inside an App, HA's URL, token and config directory come from the Supervisor.
+has an environment variable (the names below). Values saved on the Settings page (AR_TUNER_SETTINGS, default
+/data/settings.json, same names) win over everything, so the file and environment only provide the starting values.
+The Home Assistant App has no options of its own: its settings are all on the Settings page (see migrate_options). Inside an App, HA's URL, token and config directory come from the Supervisor.
 """
 import json
 import os
@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 from urllib.parse import urlsplit
+import httpx
 import yaml
 from . import names
 
@@ -44,8 +45,54 @@ def _config_value(name):
     return _dig(_file(names.env('CONFIG') or '/data/config.yaml'), KEYS[name])
 
 
+# Until 0.5.1 the App had a Configuration tab (written by the Supervisor to /data/options.json, lower-case names) for a
+# few of these settings, a second place that the Settings page silently overrode. migrate_options() copies what was
+# changed there into the saved settings once; options.json is not read otherwise.
+OLD_OPTION_DEFAULTS = {'llm_api_key': '', 'llm_base_url': 'https://openrouter.ai/api/v1', 'diagnose_model': 'qwen/qwen3.8-27b',
+                       'diagnose_daily_usd': 1.0, 'nightly_diagnose': False, 'ignore_pipelines': [], 'exclude_device_ids': [],
+                       'retention_days': 365}
+
+
 def _options():
-    return _file(names.env('OPTIONS') or '/data/options.json')
+    """The old Configuration tab's values. Updating to a version without options empties options.json before the App
+    starts, but the Supervisor still keeps the values, and the App may read its own (/addons/self/info)."""
+    options = _file(names.env('OPTIONS') or '/data/options.json')
+    if options or not supervised():
+        return options
+    try:
+        response = httpx.get('http://supervisor/addons/self/info', timeout=10, trust_env=False,
+                             headers={'Authorization': 'Bearer ' + os.environ['SUPERVISOR_TOKEN']})
+        response.raise_for_status()
+        return response.json()['data'].get('options') or {}
+    except (httpx.HTTPError, ValueError, KeyError, TypeError):
+        return {}
+
+
+def migrate_options():
+    """Copy the old Configuration tab's values (those changed from its defaults, and not already saved on the Settings
+    page) into the saved settings, once. Returns the names copied."""
+    path = Path(saved_path())
+    marker = path.with_name('options_migrated')
+    if marker.exists():
+        return []
+    data, copied, options = dict(saved()), [], _options()
+    for key, default in OLD_OPTION_DEFAULTS.items():
+        value = options.get(key)
+        name = key.upper()
+        if value in (None, '', []) or value == default or data.get(name) not in (None, ''):
+            continue
+        data[name] = (','.join(map(str, value)) if isinstance(value, list) else
+                      ('true' if value else 'false') if isinstance(value, bool) else str(value))
+        copied.append(name)
+    if copied:
+        temp = path.with_name(path.name + '.tmp')
+        descriptor = os.open(temp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(descriptor, 'w') as stream:
+            json.dump(data, stream, indent=2, sort_keys=True)
+        os.replace(temp, path)
+    if options:   # nothing read (no old options, or the Supervisor didn't answer): look again next start
+        marker.write_text(','.join(copied) + '\n')
+    return copied
 
 
 @lru_cache(maxsize=8)
@@ -86,14 +133,11 @@ def saved():
 
 
 def source(name):
-    """Where a setting's current value comes from: saved, env, options, file or default."""
+    """Where a setting's current value comes from: saved, env, file or default."""
     if saved().get(name) not in (None, ''):
         return 'saved'
     if any(os.getenv(env) not in (None, '') for env in [name] + [old for old, new in ALIASES.items() if new == name]):
         return 'env'
-    options = _options()
-    if any(options.get(k) not in (None, '') for k in [name.lower()] + [old.lower() for old, new in ALIASES.items() if new == name]):
-        return 'options'
     if _config_value(name) not in (None, ''):
         return 'file'
     return 'default'
@@ -106,10 +150,6 @@ def raw(name, default=None):
     for env in [name] + [old for old, new in ALIASES.items() if new == name]:
         if os.getenv(env) not in (None, ''):
             return os.environ[env]
-    options = _options()
-    for key in [name.lower()] + [old.lower() for old, new in ALIASES.items() if new == name]:
-        if options.get(key) not in (None, ''):
-            return options[key]
     value = _config_value(name)
     return default if value in (None, '') else value
 

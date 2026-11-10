@@ -54,8 +54,7 @@ HA_SHOWS = {'DIAGNOSE_REASONING': 'default', 'DIAGNOSE_PRICE_IN': '0', 'DIAGNOSE
 # Words for choice values, where the value itself isn't clear.
 CHOICE_LABELS = {'AI_SOURCE': {'ha': "Home Assistant's Local OpenAI LLM", 'custom': 'Custom'}}
 FIELDS = {name: dict(label=label, kind=kind, help=help, section=key) for _, key, rows in SECTIONS for name, label, kind, help in rows}
-SOURCE_WORDS = {'saved': 'Saved here', 'env': 'Environment variable', 'options': "App's Configuration tab",
-                'file': 'Config file', 'default': 'Default'}
+SOURCE_WORDS = {'saved': 'Saved here', 'env': 'Environment variable', 'file': 'Config file', 'default': 'Default'}
 
 
 def current(settings):
