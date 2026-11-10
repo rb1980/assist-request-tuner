@@ -15,8 +15,8 @@ before it is applied, tested on Home Assistant afterwards, and can be undone in 
 
 Then use your voice assistant as usual, and open **Request Tuner** to fix the requests that went to the LLM.
 
-All settings are on the app's own **Settings** page (Advanced → Settings); the App has no options on its
-**Configuration** tab.
+All settings are on the app's own **Settings** page (Advanced → Settings). The App's **Configuration** tab only has
+what coding agents need: the API token and the API port.
 
 The App reads your pipelines' debug data and registries through the Supervisor (and, when you choose Home Assistant's
 Local OpenAI LLM as the AI server, that integration's server URL and key from `.storage/core.config_entries`, read
@@ -27,8 +27,8 @@ anything until you import your edits on its Custom sentences page.
 ## Coding agents (REST and MCP)
 
 Claude Code, Codex and other coding agents can use the app through MCP, for example to work through many requests at
-once or to design and test phrasings. Set a port for `7380/tcp` on the **Network** tab, then use the API token shown
-on the app's **Settings** page: `http://<home assistant>:<port>/api/v1/...` and the MCP endpoint `/mcp/`.
+once or to design and test phrasings. On the **Configuration** tab, set a port for `7380/tcp` under **Network**, and
+either set your own **API token** or use the one the app made (shown on its **Settings** page): `http://<home assistant>:<port>/api/v1/...` and the MCP endpoint `/mcp/`.
 Setup for each agent, use cases and every tool:
 [Coding agents (MCP)](https://github.com/rb1980/assist-request-tuner/blob/main/docs/MCP.md); for scripts, the
 [REST API](https://github.com/rb1980/assist-request-tuner/blob/main/docs/API.md).

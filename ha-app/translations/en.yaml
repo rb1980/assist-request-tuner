@@ -1,2 +1,6 @@
+configuration:
+  api_token:
+    name: API token
+    description: "Password for the REST API and MCP (coding agents), at least 16 characters. Leave empty and the app makes one: Request Tuner → Advanced → Settings → Status and maintenance → Show API token. Restart the app after changing it."
 network:
-  7380/tcp: "REST API and MCP for coding agents: off while empty. To turn them on, enter a port (for example 7380) and save. Agents also need the API token, which works like a password: Request Tuner → Advanced → Settings → Status and maintenance → Show API token."
+  7380/tcp: "REST API and MCP for coding agents: off while empty. To turn them on, enter a port (for example 7380) and save. Agents also need the API token (above)."

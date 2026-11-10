@@ -10,6 +10,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from . import names
+from . import config
 from . import analysis
 from .changes import ChangeDraft, matched
 from .phrasing import list_templates, area_snapshot
@@ -32,7 +33,8 @@ def ui_router(service, settings):
 
     def page(request, name, **context):
         return templates.TemplateResponse(request=request, name=name, context=dict(context, status=service.status(), diagnose_config=service.diagnose.configuration(),
-                                                                               root=getattr(request.state, 'root', ''), api_token=settings.token if settings.supervised else None))
+                                                                               root=getattr(request.state, 'root', ''), api_token=settings.token if settings.supervised else None,
+                                                                               token_option=config.app_token_option() if settings.supervised else ''))
 
     async def form(request):
         # SameSite cookies plus an origin check prevent cross-site configuration writes.

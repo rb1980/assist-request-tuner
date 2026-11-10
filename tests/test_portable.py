@@ -16,6 +16,7 @@ def clean_env(monkeypatch, tmp_path):
         monkeypatch.delenv(name, raising=False)
     monkeypatch.setenv('AR_TUNER_SETTINGS', str(tmp_path / 'settings.json'))
     monkeypatch.setenv('AR_TUNER_CONFIG', str(tmp_path / 'config.yaml'))
+    monkeypatch.setenv('AR_TUNER_OPTIONS', str(tmp_path / 'options.json'))
     return tmp_path
 
 
@@ -47,6 +48,10 @@ def test_app_mode_uses_supervisor(clean_env, monkeypatch):
     assert s.websocket_url() == 'ws://supervisor/core/websocket'
     assert len(s.token) > 30 and Settings().token == s.token  # generated once, then reused
     assert oct((clean_env / 'api_token').stat().st_mode & 0o777) == '0o600'
+    (clean_env / 'options.json').write_text(json.dumps({'api_token': 'too-short'}))
+    assert Settings().token == s.token   # under 16 characters: the generated one stays
+    (clean_env / 'options.json').write_text(json.dumps({'api_token': ' chosen-token-placeholder '}))
+    assert Settings().token == 'chosen-token-placeholder'   # set on the App's Configuration tab
 
 
 async def test_local_writer_confined_atomic_and_refuses_symlinks(tmp_path):

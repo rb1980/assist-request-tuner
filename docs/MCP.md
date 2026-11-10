@@ -29,9 +29,11 @@ commands (testing uses Home Assistant's dry-run matcher), and only two tools cha
 
 **In the Home Assistant App:**
 
-1. **Settings → Apps → Assist Request Tuner → Network**: enter a port for `7380/tcp` (for example `7380`) and save.
+1. **Settings → Apps → Assist Request Tuner → Configuration → Network**: enter a port for `7380/tcp` (for example `7380`) and save.
    The App restarts. Without a port, MCP can't be reached; the sidebar panel works either way.
-2. Open **Request Tuner → Settings**, scroll to **API and MCP access** and click **Show API token**.
+2. For the token, either set your own **API token** (at least 16 characters) on the same **Configuration** tab and
+   restart the App, or use the one the App made: **Request Tuner → Advanced → Settings → Status and maintenance → API
+   and MCP access → Show API token**.
 
 The address is `http://<home assistant host>:<port>`, for example `http://homeassistant.local:7380`.
 
@@ -165,5 +167,5 @@ A good working pattern is **look → draft → test → review → apply**: `lis
   the shell the agent was started from.
 - **401 Unauthorized**: wrong or missing token. In the App, use the token from its Settings page, not a Home Assistant
   token.
-- **Connection refused**: in the App, no port is set on its Network tab (or the App wasn't restarted after setting it).
+- **Connection refused**: in the App, no port is set under Network on its Configuration tab (or the App wasn't restarted after setting it).
 - **Tools fail with "Home Assistant unavailable"**: the app can't reach Home Assistant right now; `get_status` shows why.

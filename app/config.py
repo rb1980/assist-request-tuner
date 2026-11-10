@@ -3,7 +3,7 @@
 The config file is AR_TUNER_CONFIG (default /data/config.yaml); see config.example.yaml for every key. Each setting also
 has an environment variable (the names below). Values saved on the Settings page (AR_TUNER_SETTINGS, default
 /data/settings.json, same names) win over everything, so the file and environment only provide the starting values.
-The Home Assistant App has no options of its own: its settings are all on the Settings page. Inside an App, HA's URL, token and config directory come from the Supervisor.
+The Home Assistant App's only option is the API token (api_token, next to the API port); its other settings are all on the Settings page. Inside an App, HA's URL, token and config directory come from the Supervisor.
 """
 import json
 import os
@@ -144,11 +144,22 @@ def config_access():
     return text('HA_CONFIG_ACCESS', 'local' if supervised() else 'sftp').lower()
 
 
+MIN_TOKEN = 16
+
+
+def app_token_option():
+    """The API token set on the App's Configuration tab (its one option, next to the API port), or ''."""
+    return str(_file(names.env('OPTIONS') or '/data/options.json').get('api_token') or '').strip()
+
+
 def api_token(db_path):
-    """AR_TUNER_TOKEN, or inside an App a random token kept next to the database (shown on the Settings page)."""
+    """AR_TUNER_TOKEN; inside an App, the token set on its Configuration tab (at least MIN_TOKEN characters), else a
+    random token kept next to the database. Either way it is shown on the Settings page."""
     value = text('AR_TUNER_TOKEN')
     if value or not supervised():
         return value
+    if len(app_token_option()) >= MIN_TOKEN:
+        return app_token_option()
     path = Path(db_path).with_name('api_token')
     if not path.exists():
         path.write_text(secrets.token_urlsafe(32))

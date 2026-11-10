@@ -145,8 +145,8 @@ its config folder, the AI analysis, and what to collect. Each section has a **Te
 before you save. Changes apply immediately, without a restart. Secrets are never shown again once saved; they are kept
 in `/data/settings.json` (mode 600).
 
-In the Home Assistant App the Settings page is the only place: the App has no **Configuration** tab options (only
-**Network**, for the API port).
+In the Home Assistant App the Settings page is the only place, except for what coding agents need: the API token and
+the API port are on the App's **Configuration** tab.
 
 With Docker Compose, every setting can also come from a file or the environment. [`config.example.yaml`](config.example.yaml)
 lists them all with their defaults and environment variable names. From lowest to highest priority: defaults, the
@@ -158,7 +158,8 @@ a field there to go back to the value below it.
 Everything the web page does is also available to scripts and to coding agents such as Claude Code and Codex: work
 through a backlog of requests at once, investigate a pattern, design and test phrasings, or keep test sessions out of
 the statistics. All `/api/v1/*` and `/mcp/` calls need `Authorization: Bearer <token>`: `ar_tuner.token`, or in the
-App the token shown at the bottom of its Settings page (and set a port for `7380/tcp` on the App's **Network** tab).
+App the **API token** on its **Configuration** tab (or, if you leave that empty, the one shown at the bottom of its
+Settings page), and set a port for `7380/tcp` there under **Network**.
 
 ```sh
 curl -H "Authorization: Bearer $AR_TUNER_TOKEN" http://<host>:7380/api/v1/status

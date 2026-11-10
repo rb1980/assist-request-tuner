@@ -10,9 +10,11 @@ For Claude Code, Codex and other coding agents, use [MCP](MCP.md) instead.
 
 **In the Home Assistant App:**
 
-1. **Settings → Apps → Assist Request Tuner → Network**: enter a port for `7380/tcp` (for example `7380`) and save.
+1. **Settings → Apps → Assist Request Tuner → Configuration → Network**: enter a port for `7380/tcp` (for example `7380`) and save.
    The App restarts. Without a port, the API can't be reached; the sidebar panel works either way.
-2. Open **Request Tuner → Settings**, scroll to **API and MCP access** and click **Show API token**.
+2. For the token, either set your own **API token** (at least 16 characters) on the same **Configuration** tab and
+   restart the App, or use the one the App made: **Request Tuner → Advanced → Settings → Status and maintenance → API
+   and MCP access → Show API token**.
 
 **With Docker Compose:** use `ar_tuner.token` from your config file (the token you log in with).
 
