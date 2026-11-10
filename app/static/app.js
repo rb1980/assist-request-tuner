@@ -104,15 +104,56 @@ document.addEventListener('click', event => {
     if (!menu.contains(event.target)) menu.open = false;
   }
 });
-// Settings page: test one section with the values currently typed in the form. The AI test also lists the API's
-// models (filling the Model field's choices) and the chosen model's prices, when the API publishes them.
-async function runTest(button) {
-  const output = button.parentElement.querySelector('.test-result');
+// Settings page: test one section with the values currently typed in the form. The AI test under the API key starts
+// over: it empties the Model field and lists the API's models to choose from. Choosing one (or typing one, for an API
+// that doesn't list its models) checks that model with a real request and fills in its prices, when the API publishes them.
+const modelInput = document.getElementById('DIAGNOSE_MODEL');
+const modelPicker = document.querySelector('[data-model-picker]');
+const modelSearch = document.querySelector('[data-model-search]');
+const modelChoices = document.querySelector('[data-model-choices]');
+let availableModels = [];
+let failedModel = null;   // the model whose last check failed: Save this configuration refuses it
+const customAi = () => document.getElementById('AI_SOURCE')?.value !== 'ha';
+function modelLabel(m) {
+  return m.price_in != null ? `${m.id} · $${m.price_in} in / $${m.price_out} out per million tokens` : m.id;
+}
+function showModels() {
+  const words = (modelSearch?.value || '').toLowerCase().split(/\s+/).filter(Boolean);
+  const shown = availableModels.filter(m => words.every(w => m.id.toLowerCase().includes(w)));
+  modelChoices.replaceChildren(...shown.map(m => new Option(modelLabel(m), m.id, false, m.id === modelInput.value)));
+  if (!shown.length) {
+    const none = new Option('No model matches the search', '');
+    none.disabled = true;
+    modelChoices.append(none);
+  }
+  modelChoices.size = Math.max(2, Math.min(8, modelChoices.options.length));
+}
+function setModels(models) {
+  availableModels = models;
+  if (!modelPicker) return;
+  modelPicker.hidden = !models.length;
+  if (modelSearch) {
+    modelSearch.hidden = models.length <= 10;
+    modelSearch.value = '';
+    modelSearch.placeholder = `Search ${models.length} models`;
+  }
+  showModels();
+}
+async function runTest(button, {listModels = false} = {}) {
+  const ai = button.dataset.test === 'ai';
+  const output = ai && !listModels && document.querySelector('[data-model-check]') || button.parentElement.querySelector('.test-result');
+  if (ai && listModels && customAi() && modelInput) {
+    modelInput.value = '';
+    setModels([]);
+    document.querySelector('[data-model-check]').textContent = '';
+  }
   output.className = 'test-result';
-  output.textContent = 'Testing…';
+  output.textContent = listModels && customAi() ? 'Listing models…' : 'Testing…';
   button.disabled = true;
   try {
-    const response = await fetch(`${ROOT}/ui/settings/test/${button.dataset.test}`, {method: 'POST', body: new FormData(button.form)});
+    const body = new FormData(button.form);
+    if (ai && listModels) body.set('LIST_MODELS', '1');
+    const response = await fetch(`${ROOT}/ui/settings/test/${button.dataset.test}`, {method: 'POST', body});
     const result = await response.json();
     if (result.ok) clearSettingErrors(button.form);
     else showSettingErrors(result.message || result.detail || 'Test failed', button.form);
@@ -120,15 +161,10 @@ async function runTest(button) {
     if (summary) summary.textContent = result.ok ? '' : 'Settings were not saved. ' + (result.message || result.detail || 'Connection test failed.');
     output.className = 'test-result ' + (result.ok ? 'ok' : 'bad');
     output.textContent = (result.ok ? '✓ ' : '✗ ') + (result.message || result.detail || 'Test failed');
-    const list = document.getElementById('model-list');
-    if (list && Array.isArray(result.models)) {
-      list.replaceChildren(...result.models.map(m => {
-        const option = document.createElement('option');
-        option.value = m.id;
-        if (m.price_in != null) option.label = `${m.id} · $${m.price_in} in / $${m.price_out} out per million tokens`;
-        return option;
-      }));
-    }
+    // Checking a model keeps the list and search as they are; the list is only replaced by Test or when there was none.
+    if (ai && Array.isArray(result.models) && (listModels || !availableModels.length)) setModels(result.models);
+    if (ai && !listModels && customAi()) failedModel = result.ok ? null : body.get('DIAGNOSE_MODEL');
+    if (ai && listModels && result.ok && availableModels.length) (modelSearch?.hidden ? modelChoices : modelSearch).focus();
     for (const [field, value] of [['DIAGNOSE_PRICE_IN', result.price_in], ['DIAGNOSE_PRICE_OUT', result.price_out]]) {
       const input = button.form.elements[field];
       if (input && value != null && input.value !== String(value)) {
@@ -144,14 +180,110 @@ async function runTest(button) {
     if (summary) summary.textContent = 'The test could not run. Your edits have been kept; check the connection and try again.';
   } finally { button.disabled = false; }
 }
-document.querySelectorAll('button[data-test]').forEach(button => button.addEventListener('click', () => runTest(button)));
-// Choosing a model from the list checks it straight away.
-const modelInput = document.getElementById('DIAGNOSE_MODEL');
+document.querySelectorAll('button[data-test]').forEach(button => button.addEventListener('click', () => runTest(button, {listModels: 'listModels' in button.dataset})));
+const aiTestButton = document.querySelector('button[data-test="ai"]');
+let checkTimer;
+function checkModelSoon(delay = 600) {
+  clearTimeout(checkTimer);
+  checkTimer = setTimeout(() => { if (modelInput.value && aiTestButton && !aiTestButton.disabled) runTest(aiTestButton); }, delay);
+}
+if (modelChoices) {
+  // Arrow keys move through the list (each move fills in the model); the check runs once the choice settles.
+  modelChoices.addEventListener('change', () => {
+    if (!modelChoices.value) return;
+    modelInput.value = modelChoices.value;
+    modelInput.dispatchEvent(new Event('input', {bubbles: true}));
+    checkModelSoon();
+  });
+  modelChoices.addEventListener('keydown', event => {
+    if (event.key === 'Enter') { event.preventDefault(); checkModelSoon(0); }
+  });
+}
+if (modelSearch) {
+  modelSearch.addEventListener('input', showModels);
+  modelSearch.addEventListener('keydown', event => {
+    if (event.key === 'Enter') {   // don't save the settings: take the first match
+      event.preventDefault();
+      const first = [...modelChoices.options].find(o => o.value);
+      if (first) { modelChoices.value = first.value; modelChoices.dispatchEvent(new Event('change')); }
+    } else if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      modelChoices.focus();
+      if (modelChoices.selectedIndex < 0 && modelChoices.options.length) modelChoices.selectedIndex = 0;
+    }
+  });
+}
+// A model typed by hand is checked when the field is left (the list, when there is one, is still the way to choose).
 if (modelInput) modelInput.addEventListener('change', () => {
-  const listed = [...document.querySelectorAll('#model-list option')].some(o => o.value === modelInput.value);
-  const button = modelInput.form.querySelector('button[data-test="ai"]');
-  if (listed && button) runTest(button);
+  if (!customAi() || !modelInput.value) return;
+  if (availableModels.length) modelChoices.value = availableModels.some(m => m.id === modelInput.value) ? modelInput.value : '';
+  checkModelSoon(0);
 });
+// Save this configuration: checks the AI fields, suggests a name (provider/model), and saves it under the name
+// confirmed in the dialog, without leaving the page (the settings in use only change with Save and apply).
+function providerName(url) {
+  try {
+    const host = new URL(url).hostname;
+    if (/^[\d.]+$/.test(host) || host.includes(':') || !host.includes('.')) return host;
+    const parts = host.split('.');
+    return parts[parts.length - 2];
+  } catch (_) { return ''; }
+}
+const saveConfigButton = document.querySelector('[data-save-config]');
+const saveConfigDialog = document.querySelector('[data-save-config-dialog]');
+if (saveConfigButton && saveConfigDialog) {
+  const settingsFormEl = saveConfigButton.form;
+  const result = document.querySelector('[data-save-config-result]');
+  const nameInput = saveConfigDialog.querySelector('#PRESET_NAME');
+  const dialogError = saveConfigDialog.querySelector('[data-save-config-error]');
+  const fail = message => {
+    result.className = 'test-result bad';
+    result.textContent = '✗ ' + message;
+    showSettingErrors(message, settingsFormEl);
+  };
+  saveConfigButton.addEventListener('click', async () => {
+    result.className = 'test-result';
+    result.textContent = '';
+    clearSettingErrors(settingsFormEl);
+    // Checked here first: a model the API doesn't list.
+    if (customAi() && availableModels.length && modelInput.value && !availableModels.some(m => m.id === modelInput.value)) {
+      return fail(`Model: “${modelInput.value}” isn't one the API listed. Choose one from the list.`);
+    }
+    if (customAi() && modelInput.value && modelInput.value === failedModel) {
+      return fail(`Model: “${modelInput.value}” didn't pass its check (see above). Choose another model.`);
+    }
+    try {
+      const response = await fetch(`${ROOT}/ui/settings/presets/check`, {method: 'POST', body: new FormData(settingsFormEl)});
+      const check = await response.json();
+      if (!check.ok) return fail(check.message || check.detail || 'Check the AI fields.');
+    } catch (_) { return fail('The check could not run. Please try again.'); }
+    const model = modelInput?.value || '';
+    const provider = customAi() ? providerName(settingsFormEl.elements.LLM_BASE_URL?.value || '') : 'Home Assistant';
+    nameInput.value = [provider, model].filter(Boolean).join('/').slice(0, 60);
+    dialogError.textContent = '';
+    saveConfigDialog.showModal();
+    nameInput.select();
+  });
+  saveConfigDialog.querySelector('[data-close]').addEventListener('click', () => saveConfigDialog.close());
+  saveConfigDialog.querySelector('form').addEventListener('submit', async event => {
+    event.preventDefault();
+    if (event.submitter?.value === 'cancel') return saveConfigDialog.close();
+    const body = new FormData(settingsFormEl);
+    body.set('PRESET_NAME', nameInput.value);
+    try {
+      const response = await fetch(`${ROOT}/ui/settings/presets/save`, {method: 'POST', body, headers: {Accept: 'application/json'}});
+      const saved = await response.json();
+      if (!response.ok) { dialogError.className = 'test-result bad'; dialogError.textContent = '✗ ' + (saved.detail || 'Not saved.'); return; }
+      saveConfigDialog.close();
+      const box = document.querySelector('[data-presets]');
+      const select = box.querySelector('select');
+      select.replaceChildren(...saved.presets.map(p => new Option(`${p.name} · ${p.model} on ${p.host}${p.active ? ' (in use)' : ''}`, p.name, false, p.name === saved.name)));
+      box.hidden = false;
+      result.className = 'test-result ok';
+      result.textContent = '✓ ' + saved.message;
+    } catch (_) { dialogError.className = 'test-result bad'; dialogError.textContent = '✗ Not saved: the request could not run. Please try again.'; }
+  });
+}
 // Settings page: the AI server choice shows only the fields that apply (Custom: URL and key; Home Assistant: which
 // agent). With Home Assistant, the model, reasoning, prices and budget come from HA: shown greyed out with HA's values
 // (disabled fields aren't sent, so saving keeps the Custom values for switching back).
@@ -168,7 +300,8 @@ function showAiFields() {
     input.disabled = ha;
     row.classList.toggle('from-ha', ha);
   }
-  document.querySelectorAll('button[data-test="ai"] ~ .test-result').forEach(out => { out.textContent = ''; });
+  document.querySelectorAll('button[data-test="ai"] ~ .test-result, [data-model-check]').forEach(out => { out.textContent = ''; });
+  if (modelPicker) modelPicker.hidden = ha || !availableModels.length;
 }
 if (aiSource) {
   aiSource.addEventListener('change', showAiFields);

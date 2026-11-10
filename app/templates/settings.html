@@ -21,14 +21,25 @@
 
   {% if api_token %}<section class="card" id="connection"><h2>Home Assistant</h2><span class="badge {{ 'ok' if status.ha_connected else 'warn' }}">{{ 'Connected' if status.ha_connected else 'Disconnected' }}</span><p>Managed by the Home Assistant App. Authentication and config folder access are set up automatically.</p><p class="meta">{{ status.writer.state }}</p></section>{% endif %}
   <form method="post" action="{{ root }}/settings" class="settings">
-    {# Enter in any field saves the form, not the first AI setup button below. #}
+    {# Enter in any field saves the form, not the first other button below. #}
     <button class="default-submit" tabindex="-1" aria-hidden="true">Save and apply</button>
     {% for title, key, rows in sections %}
       {% if not (api_token and key in ('ha', 'writer')) %}
       {% if key in ('ai', 'collector', 'writer') %}<details class="card settings-section" id="{{ 'collection' if key == 'collector' else key }}" {{ 'open' if errors }}><summary>{{ title }}{{ ' · Optional' if key == 'ai' }}</summary>{% else %}<section class="card" id="connection">{% endif %}
       <fieldset>
         <legend {{ 'class=sr-only' if key in ('ai', 'collector', 'writer') }}>{{ title }}</legend>
-        {% if key == 'ai' %}<p class="meta">Built-in suggestions, recipes, and manual editing work without AI. Analysis sends transcripts, assistant actions and replies, and exposed device and area names to your chosen provider. {{ 'Scheduled nightly analysis is enabled.' if diagnose_config.nightly else 'Analysis runs when you request it; scheduled nightly analysis is off.' }}</p>{% endif %}
+        {% if key == 'ai' %}<p class="meta">Built-in suggestions, recipes, and manual editing work without AI. Analysis sends transcripts, assistant actions and replies, and exposed device and area names to your chosen provider. {{ 'Scheduled nightly analysis is enabled.' if diagnose_config.nightly else 'Analysis runs when you request it; scheduled nightly analysis is off.' }}</p>
+          <div class="setting presets" data-presets {{ 'hidden' if not presets }}>
+            <label for="PRESET">Saved Configurations</label>
+            <div class="row">
+              <select id="PRESET" name="PRESET" aria-describedby="help-PRESET">
+                {% for p in presets %}<option value="{{ p.name }}" {{ 'selected' if p.active }}>{{ p.name }} · {{ p.model }} on {{ p.host }}{{ ' (in use)' if p.active }}</option>{% endfor %}
+              </select>
+              <button formaction="{{ root }}/ui/settings/presets/use" formmethod="post">Load Config</button>
+              <button formaction="{{ root }}/ui/settings/presets/delete" formmethod="post" class="link">Delete</button>
+            </div>
+            <small id="help-PRESET" class="meta">Load Config switches to the chosen configuration straight away (other unsaved changes on this page are discarded).</small>
+          </div>{% endif %}
         {% if key == 'collector' %}<p class="meta">Transcripts and results are stored in the local database. Audio is not stored.</p>{% endif %}
         {% for name, _label, _kind, _help in rows %}{% set f = fields[name] %}
           <div class="setting" data-field="{{ name }}"{% if name in ('LLM_BASE_URL', 'LLM_API_KEY') %} data-when="custom"{% elif name == 'AI_HA_SERVER' %} data-when="ha"{% elif name in from_ha %} data-from-ha="{{ ha_shows.get(name, '') }}"{% endif %}>
@@ -69,37 +80,37 @@
               {% else %}
                 <input id="{{ name }}" name="{{ name }}" aria-describedby="help-{{ name }}" value="{{ f.value if f.value is not none }}"
                        type="{{ 'url' if f.kind == 'url' else 'number' if f.kind in ('int', 'float') else 'text' }}"
-                       {{ 'step=any' if f.kind == 'float' }}{% if name == 'DIAGNOSE_MODEL' %} list="model-list" autocomplete="off"{% endif %}>
-                {% if name == 'DIAGNOSE_MODEL' %}<datalist id="model-list"></datalist>{% endif %}
+                       {{ 'step=any' if f.kind == 'float' }}{% if name == 'DIAGNOSE_MODEL' %} autocomplete="off"{% endif %}>
+                {% if name == 'DIAGNOSE_MODEL' %}
+                  <div class="model-picker" data-model-picker hidden>
+                    <input type="search" data-model-search placeholder="Search models" aria-label="Search the available models" autocomplete="off" hidden>
+                    <select data-model-choices size="8" aria-label="Available models"></select>
+                  </div>
+                  <span class="test-result" data-model-check role="status"></span>
+                {% endif %}
               {% endif %}
             {% endif %}
             {% if f.kind != 'haserver' %}<small id="help-{{ name }}" class="meta">{{ f.help }}{{ ' ' if f.help }}<span class="source">From: {{ f.source }}</span></small>{% endif %}
           </div>
+          {% if name == 'LLM_API_KEY' %}
+            <div class="test ai-test">
+              <button type="button" data-test="ai" data-list-models>Test</button>
+              <span class="test-result" role="status"></span>
+            </div>
+          {% endif %}
         {% endfor %}
         {% if key == 'ai' %}
-          <details class="presets"><summary>Saved AI setups</summary>
-
-            {% if presets %}
-              <div class="row">
-                <select name="PRESET" aria-label="Saved AI setup">
-                  {% for p in presets %}<option value="{{ p.name }}" {{ 'selected' if p.active }}>{{ p.name }} · {{ p.model }} on {{ p.host }}{{ ' (in use)' if p.active }}</option>{% endfor %}
-                </select>
-                <button formaction="{{ root }}/ui/settings/presets/use" formmethod="post">Use</button>
-                <button formaction="{{ root }}/ui/settings/presets/delete" formmethod="post" class="link">Delete</button>
-              </div>
-            {% endif %}
-            <div class="row">
-              <input name="PRESET_NAME" maxlength="60" placeholder="Name, for example Cerebras Qwen" aria-label="Name for this AI setup">
-              <button formaction="{{ root }}/ui/settings/presets/save" formmethod="post">Save current as…</button>
-            </div>
-            <small class="meta">Saves the AI server, URL, key, model, reasoning, prices and budget as set above. Use switches to a saved setup
-              (other unsaved changes on this page are discarded).</small>
-          </details>
+          <div class="test">
+            <button type="button" data-save-config>Save this configuration</button>
+            <span class="test-result" data-save-config-result role="status"></span>
+          </div>
+          <small class="meta">Keeps the AI server, URL, key, model, reasoning, prices and budget under a name, to load again from Saved Configurations. It doesn't change the settings in use: Save and apply does that.</small>
+        {% else %}
+          <div class="test">
+            <button type="button" data-test="{{ key }}">Test {{ {'ha': 'connection', 'writer': 'file access', 'collector': 'collection settings'}[key] }}</button>
+            <span class="test-result" role="status"></span>
+          </div>
         {% endif %}
-        <div class="test">
-          <button type="button" data-test="{{ key }}">Test {{ {'ha': 'connection', 'writer': 'file access', 'ai': 'AI setup', 'collector': 'collection settings'}[key] }}</button>
-          <span class="test-result" role="status"></span>
-        </div>
       </fieldset>
       {% if key in ('ai', 'collector', 'writer') %}</details>{% else %}</section>{% endif %}
       {% endif %}
@@ -110,6 +121,17 @@
       Empty a field to go back to that value. Secrets are never shown: leave them empty to keep the current one.</p>
     <div class="actions"><button class="primary">Save and apply</button><span class="meta" data-settings-dirty>Changes apply without a restart.</span></div>
   </form>
+
+  <dialog class="save-config" data-save-config-dialog aria-labelledby="save-config-title">
+    <form method="dialog">
+      <h2 id="save-config-title">Save this configuration</h2>
+      <label for="PRESET_NAME">Name</label>
+      <input id="PRESET_NAME" name="PRESET_NAME" maxlength="60" required autocomplete="off" aria-describedby="save-config-help">
+      <small id="save-config-help" class="meta">A configuration with the same name is replaced.</small>
+      <span class="test-result" data-save-config-error role="alert"></span>
+      <div class="actions"><button class="primary" value="save">Save</button><button type="button" value="cancel" data-close>Cancel</button></div>
+    </form>
+  </dialog>
 
   <details class="card"><summary>Status and maintenance</summary>
   <h2>Status</h2>

@@ -128,9 +128,11 @@ analysis**, with one of two choices:
   (`.storage/core.config_entries`, read only, through the same config folder access it uses for its own files) and
   follows changes you make there. Without that integration, or without config folder access, this choice is shown as
   unavailable.
-- **Custom.** Any OpenAI-compatible API: enter its URL and key, press **Test**, and choose a model from the list. Test
-  lists only models that can call tools, checks the one you choose with a real request, and fills in its prices when
-  the API publishes them (OpenRouter does), for the daily budget. Save several as **AI setups** to switch between them. 
+- **Custom.** Any OpenAI-compatible API: enter its URL and key, press **Test** (under the key), and choose a model from
+  the list (long lists, like OpenRouter's, have a search box). Test lists only models that can call tools; the one you
+  choose is checked with a real request, and its prices are filled in when the API publishes them (OpenRouter does),
+  for the daily budget. **Save this configuration** keeps it under a name, to switch back any time with **Saved
+  Configurations → Load Config**.
 
 Bigger models give better analyses: in testing, Qwen 3.8 27B did well (locally in LM Studio, or fast on Cerebras), while
 some others skipped their own checks. Providers differ in which optional request fields they accept; the app finds out

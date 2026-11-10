@@ -120,6 +120,12 @@ async def test_settings_page_offers_ha_only_when_found_and_test_uses_it(clean_en
                 assert 'some/model · Home LLM · ' + fake_openai.url in page and 'data-from-ha="default"' in page
                 # As the browser sends it: the greyed-out fields (model, reasoning, prices, budget) are not in the form.
                 base = {'HA_URL': fake_ha.url, 'HA_CONFIG_ACCESS': 'local', 'TZ': 'UTC', 'AI_SOURCE': 'ha', 'AI_HA_SERVER': 'srv/srv-0'}
+                # Custom, Test under the API key: lists the models, and doesn't check the saved one (the field was emptied).
+                custom = dict(base, AI_SOURCE='custom', LLM_BASE_URL=fake_openai.url, LLM_API_KEY='key-placeholder', DIAGNOSE_MODEL='')
+                calls = len(fake_openai.calls)
+                listed = (await client.post('/ui/settings/test/ai', data=dict(custom, LIST_MODELS='1'))).json()
+                assert listed['ok'] and [m['id'] for m in listed['models']] == ['other/model', 'some/model']
+                assert listed['message'].endswith('Choose one from the list below.') and len(fake_openai.calls) == calls
                 result = (await client.post('/ui/settings/test/ai', data=base)).json()
                 assert result['message'].startswith(f'Using “Home LLM” from Home Assistant: some/model at {fake_openai.url}.')
                 assert 'models' not in result and fake_openai.calls[-1]['model'] == 'some/model'

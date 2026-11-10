@@ -20,7 +20,7 @@ from .service import Service
 from .api import router
 from .mcp_server import build_mcp
 from .metrics import render
-from .ui import ui_router
+from .ui import ASSET_VERSION, ui_router
 from pathlib import Path
 
 INGRESS_PROXY = '172.30.32.2'  # the Supervisor's ingress proxy address on the hassio network
@@ -117,6 +117,7 @@ def create_app(settings=None, ha=None, start_collector=True):
         return response
 
     pages = Jinja2Templates(directory=Path(__file__).parent / 'templates')
+    pages.env.globals["asset_version"] = ASSET_VERSION
 
     def failure(request, detail, status_code):
         # Browser pages (the wizard) get a readable page with a way back; API, MCP and fetch() callers keep JSON.

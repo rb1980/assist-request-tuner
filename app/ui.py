@@ -1,3 +1,4 @@
+import hashlib
 import difflib
 import hmac
 import json
@@ -17,9 +18,14 @@ from .explain import near_miss_text, alias_suggestions
 from . import ha_llm, wizard, sentences, settings_store
 
 
+
+# Added to the stylesheet and script URLs, so a browser never runs an old app.js against a newer page after an update.
+ASSET_VERSION = hashlib.sha256(b''.join((Path(__file__).parent / 'static' / name).read_bytes() for name in ('app.js', 'style.css'))).hexdigest()[:12]
+
 def ui_router(service, settings):
     r = APIRouter()
     templates = Jinja2Templates(directory=Path(__file__).parent / 'templates')
+    templates.env.globals['asset_version'] = ASSET_VERSION
     templates.env.filters['pretty'] = lambda v: json.dumps(v, indent=2, ensure_ascii=False)
     templates.env.filters['localtime'] = lambda v: datetime.fromisoformat(v).astimezone(ZoneInfo(settings.timezone)).strftime('%b %d %H:%M:%S') if v else '—'
     db, ha, changes = service.db, service.ha, service.changes
@@ -244,15 +250,27 @@ def ui_router(service, settings):
             await changes.blueprints.ensure_blueprint()
         return RedirectResponse('/settings', status_code=303)
 
+    def wants_json(request):
+        return 'application/json' in request.headers.get('accept', '')
+
+    @r.post('/ui/settings/presets/check')
+    async def check_preset(request: Request):
+        _trial, errors = settings_store.preset_check(await form(request), settings)
+        return dict(ok=not errors, errors=errors, message='Fix these first: ' + '; '.join(errors) if errors else '')
+
     @r.post('/ui/settings/presets/save')
     async def save_preset(request: Request):
         data = await form(request)
-        trial, errors = settings_store.candidate(data, settings)
+        trial, errors = settings_store.preset_check(data, settings)
         if errors:
             raise ValueError('Fix these first: ' + '; '.join(errors))
         name = settings_store.preset_name(data.get('PRESET_NAME'))
+        replaced = name in settings_store.presets()
         settings_store.save_preset(name, trial)
-        return RedirectResponse('/settings?' + urlencode({'note': f'Saved the AI setup “{name}”. It is not in use until you choose Use.'}), status_code=303)
+        message = f'{"Updated" if replaced else "Saved"} the configuration “{name}”. Load it from Saved Configurations any time.'
+        if wants_json(request):
+            return dict(ok=True, name=name, message=message, presets=settings_store.presets_view(settings))
+        return RedirectResponse('/settings?' + urlencode({'note': message}), status_code=303)
 
     @r.post('/ui/settings/presets/use')
     async def use_preset(request: Request):
@@ -260,13 +278,13 @@ def ui_router(service, settings):
         settings_store.use_preset(name, settings)
         async with changes.lock:
             await settings_store.apply(settings, service)
-        return RedirectResponse('/settings?' + urlencode({'saved': '1', 'ok': 1, 'check': f'Now using the AI setup “{name}”: {settings.diagnose_model}.'}), status_code=303)
+        return RedirectResponse('/settings?' + urlencode({'saved': '1', 'ok': 1, 'check': f'Loaded the configuration “{name}”: {settings.diagnose_model}.'}), status_code=303)
 
     @r.post('/ui/settings/presets/delete')
     async def delete_preset(request: Request):
         name = (await form(request)).get('PRESET', '')
         settings_store.delete_preset(name)
-        return RedirectResponse('/settings?' + urlencode({'note': f'Deleted the saved AI setup “{name}”. The current settings are unchanged.'}), status_code=303)
+        return RedirectResponse('/settings?' + urlencode({'note': f'Deleted the saved configuration “{name}”. The current settings are unchanged.'}), status_code=303)
 
     @r.post('/ui/settings/test/{section}')
     async def test_settings(section: str, request: Request):

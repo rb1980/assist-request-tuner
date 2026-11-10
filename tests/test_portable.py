@@ -95,7 +95,7 @@ async def test_ingress_prefixes_links_and_redirects_but_api_needs_token(fake_ha,
         proxy = httpx.ASGITransport(app=app, client=('172.30.32.2', 4000))
         async with httpx.AsyncClient(transport=proxy, base_url='http://testserver', headers={'x-ingress-path': root}) as client:
             page = await client.get('/')
-            assert page.status_code == 200 and f'href="{root}/history"' in page.text and f'href="{root}/static/style.css"' in page.text
+            assert page.status_code == 200 and f'href="{root}/history"' in page.text and f'href="{root}/static/style.css?v=' in page.text
             assert f'data-root="{root}"' in page.text and 'href="/history"' not in page.text
             # HA shows the panel in an iframe on its own origin; no logout (the HA login is the only one).
             assert "frame-ancestors 'self'" in page.headers['content-security-policy'] and '/logout' not in page.text
@@ -402,14 +402,22 @@ async def test_saved_ai_setups_switch_back_and_forth(clean_env, fake_ha, monkeyp
                          DIAGNOSE_PRICE_IN='0.6', DIAGNOSE_PRICE_OUT='1.2', DIAGNOSE_DAILY_USD='1')
             local = dict(base, LLM_BASE_URL='http://192.168.1.50:1234/v1', LLM_API_KEY='lm-studio', DIAGNOSE_MODEL='local/qwen',
                          DIAGNOSE_PRICE_IN='0', DIAGNOSE_PRICE_OUT='0', DIAGNOSE_DAILY_USD='0')
+            # The fields a configuration needs must be filled in, and it says which ones aren't.
+            check = (await client.post('/ui/settings/presets/check', data=dict(cloud, DIAGNOSE_MODEL='', LLM_BASE_URL=''))).json()
+            assert not check['ok'] and check['errors'] == ['API URL: required', 'Model: choose a model (press Test to list them)']
+            assert (await client.post('/ui/settings/presets/check', data=cloud)).json()['ok']
+            assert (await client.post('/ui/settings/presets/save', data=dict(cloud, DIAGNOSE_MODEL='', PRESET_NAME='x'))).status_code == 400
             page = await client.post('/ui/settings/presets/save', data=dict(cloud, PRESET_NAME='Cerebras Qwen'))
-            assert 'Saved the AI setup “Cerebras Qwen”' in page.text and settings.diagnose_model != 'qwen-3.8-27b'   # saving doesn't switch
+            assert 'Saved the configuration “Cerebras Qwen”' in page.text and settings.diagnose_model != 'qwen-3.8-27b'   # saving doesn't switch
+            saved = (await client.post('/ui/settings/presets/save', data=dict(cloud, PRESET_NAME='Cerebras Qwen'), headers={'Accept': 'application/json'})).json()
+            assert saved['name'] == 'Cerebras Qwen' and saved['message'].startswith('Updated the configuration')
+            assert [p['name'] for p in saved['presets']] == ['Cerebras Qwen'] and 'cloud-key-placeholder' not in str(saved)
             await client.post('/ui/settings/presets/save', data=dict(local, PRESET_NAME='  LM   Studio '))
             assert oct((clean_env / 'ai_setups.json').stat().st_mode & 0o777) == '0o600'
             assert (await client.post('/ui/settings/presets/save', data=dict(local, PRESET_NAME=' '))).status_code == 400
 
             page = await client.post('/ui/settings/presets/use', data={'PRESET': 'LM Studio'})
-            assert 'Now using the AI setup “LM Studio”' in page.text and 'LM Studio · local/qwen on 192.168.1.50:1234 (in use)' in page.text
+            assert 'Loaded the configuration “LM Studio”' in page.text and 'LM Studio · local/qwen on 192.168.1.50:1234 (in use)' in page.text
             assert settings.llm_base_url == 'http://192.168.1.50:1234/v1' and settings.openrouter_api_key == 'lm-studio' and settings.diagnose_daily_usd == 0
             page = await client.post('/ui/settings/presets/use', data={'PRESET': 'Cerebras Qwen'})
             assert settings.diagnose_model == 'qwen-3.8-27b' and settings.openrouter_api_key == 'cloud-key-placeholder'
@@ -417,5 +425,5 @@ async def test_saved_ai_setups_switch_back_and_forth(clean_env, fake_ha, monkeyp
             assert 'Cerebras Qwen · qwen-3.8-27b on api.cerebras.ai (in use)' in page.text and 'cloud-key-placeholder' not in page.text
 
             page = await client.post('/ui/settings/presets/delete', data={'PRESET': 'LM Studio'})
-            assert 'Deleted the saved AI setup' in page.text and 'LM Studio ·' not in page.text and settings.diagnose_model == 'qwen-3.8-27b'
+            assert 'Deleted the saved configuration' in page.text and 'LM Studio ·' not in page.text and settings.diagnose_model == 'qwen-3.8-27b'
             assert (await client.post('/ui/settings/presets/use', data={'PRESET': 'LM Studio'})).status_code == 404

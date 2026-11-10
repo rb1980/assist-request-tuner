@@ -33,7 +33,7 @@ SECTIONS = [
         ('LLM_BASE_URL', 'API URL', 'url', 'Any OpenAI-compatible chat API with tool calling, for example https://openrouter.ai/api/v1, '
          'https://api.openai.com/v1, https://api.cerebras.ai/v1 or a local http://host:11434/v1.'),
         ('LLM_API_KEY', 'API key', 'secret', ''),
-        ('DIAGNOSE_MODEL', 'Model', 'text', 'Press Test to list the models this API offers, then choose one. Test checks it calls tools.'),
+        ('DIAGNOSE_MODEL', 'Model', 'text', 'Press Test above to list the models this API offers, then choose one: it is checked with a real tool-calling request.'),
         ('DIAGNOSE_REASONING', 'Reasoning effort', 'choice:medium|low|high|default', '"default" sends no reasoning setting. Ignored by models without one.'),
         ('DIAGNOSE_PRICE_IN', 'Price per million input tokens (USD)', 'float', 'For the daily budget. Filled in by Test when the API publishes prices.'),
         ('DIAGNOSE_PRICE_OUT', 'Price per million output tokens (USD)', 'float', ''),
@@ -160,7 +160,7 @@ def save(changes):
     os.replace(temp, path)
 
 
-# Saved AI setups: named copies of the AI settings, to switch between providers and models. Kept next to the saved
+# Saved configurations: named copies of the AI settings, to switch between providers and models. Kept next to the saved
 # settings (mode 600), because they include API keys.
 PRESET_FIELDS = ('AI_SOURCE', 'AI_HA_SERVER', 'LLM_BASE_URL', 'LLM_API_KEY', 'DIAGNOSE_MODEL', 'DIAGNOSE_REASONING', 'DIAGNOSE_PRICE_IN', 'DIAGNOSE_PRICE_OUT',
                  'DIAGNOSE_DAILY_USD')
@@ -197,8 +197,25 @@ def preset_values(trial):
 def preset_name(name):
     name = ' '.join((name or '').split())
     if not 1 <= len(name) <= 60:
-        raise ValueError('Give the AI setup a name of 1 to 60 characters')
+        raise ValueError('Give the configuration a name of 1 to 60 characters')
     return name
+
+
+def preset_check(form, settings):
+    """The settings a saved configuration would hold, or (None, errors): the form must parse, and the fields the
+    configuration needs must be filled in on the page (an empty field would otherwise fall back to the current value)."""
+    trial, errors = candidate(form, settings)
+    errors = list(errors)
+    filled = lambda name: str(form.get(name) or '').strip()
+    if (form.get('AI_SOURCE') or settings.ai_source) == 'ha':
+        if not filled('AI_HA_SERVER'):
+            errors.append(f"{FIELDS['AI_HA_SERVER']['label']}: choose an agent")
+    else:
+        if not filled('LLM_BASE_URL'):
+            errors.append(f"{FIELDS['LLM_BASE_URL']['label']}: required")
+        if not filled('DIAGNOSE_MODEL'):
+            errors.append(f"{FIELDS['DIAGNOSE_MODEL']['label']}: choose a model (press Test to list them)")
+    return (None, errors) if errors else (trial, [])
 
 
 def save_preset(name, trial):
@@ -210,7 +227,7 @@ def save_preset(name, trial):
 def delete_preset(name):
     data = presets()
     if data.pop(name, None) is None:
-        raise KeyError('No saved AI setup with that name')
+        raise KeyError('No saved configuration with that name')
     _write_presets(data)
 
 
@@ -218,12 +235,12 @@ def use_preset(name, settings):
     """Make a saved setup the current AI settings (saved on this page, so they win over the other sources)."""
     values = presets().get(name)
     if values is None:
-        raise KeyError('No saved AI setup with that name')
+        raise KeyError('No saved configuration with that name')
     save(changed_only({k: (v or None) for k, v in values.items() if k in PRESET_FIELDS}, settings))
 
 
 def presets_view(settings):
-    """Saved setups for the page, without their keys, and which one matches the current settings."""
+    """Saved configurations for the page, without their keys, and which one matches the current settings."""
     now = preset_values(settings)
     return [dict(name=name, model=values.get('DIAGNOSE_MODEL', ''),
                  host='Home Assistant' if values.get('AI_SOURCE') == 'ha' else urlsplit(values.get('LLM_BASE_URL', '')).netloc,
@@ -360,7 +377,7 @@ async def test_ai(trial, service):
             except (httpx.HTTPError, ValueError) as exc:
                 listed = "This API doesn't list its models" + (f' ({short(exc)})' if isinstance(exc, ValueError) else '') + '; type the model name.'
             if not trial.diagnose_model:
-                return dict(ok=bool(models), message=listed + ' Choose a model, then press Test again.', models=models)
+                return dict(ok=bool(models), message=listed + (' Choose one from the list below.' if models else ''), models=models)
             if models and trial.diagnose_model not in {m['id'] for m in models}:
                 return dict(ok=False, message=listed + f' “{trial.diagnose_model}” isn\'t one of them: choose one from the list.', models=models)
             ok, notes = await client.probe(http, MODEL_TOOLS)
@@ -402,6 +419,8 @@ async def test(section, form, settings, service):
     trial, errors = candidate(form, settings)
     if errors:
         return dict(ok=False, message='Fix these first: ' + '; '.join(errors))
+    if section == 'ai' and form.get('LIST_MODELS'):
+        trial.diagnose_model = ''   # Test under the API key: only list the models (an empty field would mean the saved one)
     result = await TESTS[section](trial, service)
     if isinstance(result, dict):
         return result
