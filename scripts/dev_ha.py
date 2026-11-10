@@ -87,7 +87,11 @@ async def onboard():
     async with httpx.AsyncClient(base_url=BASE, timeout=60) as http:
         for _ in range(60):   # just after (re)starting the Supervisor, HA may still be starting
             try:
-                steps = (await http.get('/api/onboarding')).json()
+                response = await http.get('/api/onboarding')
+                if response.status_code == 404:   # Home Assistant removes the onboarding API once onboarding is done
+                    steps = [{'step': 'user', 'done': True}]
+                    break
+                steps = response.json()
                 break
             except (httpx.HTTPError, ValueError):
                 await asyncio.sleep(3)

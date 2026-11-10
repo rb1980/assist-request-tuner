@@ -14,7 +14,7 @@
 #
 # UI: http://localhost:8125 (proxied to its port 80; HA 2026.11 redirects 8123 to 80). `up` onboards a "dev"
 # owner; its password is in .data/dev-ha-login.txt. Nothing is published beyond 127.0.0.1. Deleting it for good is up to you:
-#   docker rm -f ar-tuner-ha ar-tuner-ha-proxy && docker volume rm ar-tuner-ha-docker ar-tuner-ha-supervisor
+#   docker rm -f ar-tuner-ha ar-tuner-ha-proxy && docker network rm ar-tuner-ha-net && docker volume rm ar-tuner-ha-docker ar-tuner-ha-supervisor
 set -euo pipefail
 cd "$(dirname "$0")/.."
 NAME=ar-tuner-ha
@@ -52,9 +52,25 @@ supervisor() {
   # Its own exec: inside the bash -c above, pkill would match (and kill) that shell, whose text names the script.
   docker exec "$NAME" pkill -f supervisor_run || true
   docker exec "$NAME" sh -c 'docker rm -f hassio_supervisor >/dev/null 2>&1 || true'
+  # /run survives a restart of the container, and so does a leftover Docker daemon from an earlier attempt. The script
+  # waits only for docker.sock to exist, so a stale one makes it start the Supervisor before Docker is up, and give up.
+  # Stop any Docker daemon and clear its files first.
+  docker exec "$NAME" sh -c '
+    pkill -x dockerd; pkill -x containerd
+    for i in $(seq 30); do pgrep -x dockerd >/dev/null || pgrep -x containerd >/dev/null || break; sleep 1; done
+    pkill -9 -x dockerd; pkill -9 -x containerd
+    rm -f /var/run/docker.sock /var/run/docker.pid /var/run/docker/containerd/containerd.pid; true'
   docker exec -dt "$NAME" bash -c 'supervisor_run > /var/log/supervisor_run.log 2>&1'
   echo -n "Waiting for the Supervisor"
-  until "${CLI[@]}" supervisor info >/dev/null 2>&1; do echo -n .; sleep 5; done; echo
+  local waited=0
+  until "${CLI[@]}" supervisor info >/dev/null 2>&1; do
+    echo -n .; sleep 5; waited=$((waited + 5))
+    if [ "$waited" -ge 300 ]; then
+      echo; echo "The Supervisor didn't start within 5 minutes. Its start-up log:" >&2
+      docker exec "$NAME" tail -20 /var/log/supervisor_run.log >&2
+      exit 1
+    fi
+  done; echo
   "${CLI[@]}" supervisor options --channel stable >/dev/null
   # Docker inside Docker has no protected gateway, so the Supervisor calls the system unhealthy and blocks updates
   # and installs; harmless here.
@@ -63,7 +79,7 @@ supervisor() {
 
 
 update_core() {
-  # First boot can still be installing Core automatically. Retry only that specific job conflict, for at most
+  # First boot can still be installing Core automatically. Retry only that job conflict (or a Supervisor still starting), for at most
   # five minutes, and recheck the version because the automatic installation may already have reached our target.
   local wanted=$1 have output result attempt
   for attempt in $(seq 30); do
@@ -75,11 +91,13 @@ update_core() {
     else
       result=$?
     fi
-    if [[ "$output" != *"Another job is running for home_assistant_core"* && "$output" != *"Another job is running for job group home_assistant_core"* ]] || [ "$attempt" -eq 30 ]; then
+    # Just after it starts, the Supervisor also refuses for a while with "not ready": retry that too.
+    if [[ "$output" != *"Another job is running for home_assistant_core"* && "$output" != *"Another job is running for job group home_assistant_core"* &&
+          "$output" != *"Supervisor is not ready"* ]] || [ "$attempt" -eq 30 ]; then
       printf '%s\n' "$output" >&2
       return "$result"
     fi
-    echo "Core installation is still running; retrying in 10 seconds ($attempt/30)."
+    echo "The Supervisor is busy (${output##*: }); retrying in 10 seconds ($attempt/30)."
     sleep 10
   done
 }
@@ -93,8 +111,17 @@ case "${1:-}" in
     else
       docker start "$NAME" >/dev/null
     fi
-    docker inspect ar-tuner-ha-proxy >/dev/null 2>&1 || docker run -d --name ar-tuner-ha-proxy -p 127.0.0.1:8125:8125 \
-      alpine/socat tcp-listen:8125,fork,reuseaddr "tcp:$NAME.orb.local:80" >/dev/null
+    # The proxy reaches HA by container name on their own network: OrbStack's $NAME.orb.local name can keep pointing at
+    # an address that stops answering after the container restarts. An older proxy that used that name is stopped and
+    # kept as ar-tuner-ha-proxy-old (delete it when you like).
+    docker network inspect "$NAME-net" >/dev/null 2>&1 || docker network create "$NAME-net" >/dev/null
+    docker network connect "$NAME-net" "$NAME" 2>/dev/null || true
+    if docker inspect -f '{{join .Args " "}}' ar-tuner-ha-proxy 2>/dev/null | grep -q orb.local; then
+      docker stop ar-tuner-ha-proxy >/dev/null
+      docker rename ar-tuner-ha-proxy ar-tuner-ha-proxy-old
+    fi
+    docker inspect ar-tuner-ha-proxy >/dev/null 2>&1 || docker run -d --name ar-tuner-ha-proxy --network "$NAME-net" \
+      -p 127.0.0.1:8125:8125 alpine/socat tcp-listen:8125,fork,reuseaddr "tcp:$NAME:80" >/dev/null
     docker start ar-tuner-ha-proxy >/dev/null
     stage   # before the Supervisor starts: it reads local Apps only at start-up (`store reload` doesn't rescan them)
     supervisor
@@ -113,7 +140,12 @@ case "${1:-}" in
   rebuild)
     stage
     "${CLI[@]}" store reload >/dev/null
-    "${CLI[@]}" apps rebuild local_assist_ar_tuner
+    # After a version bump the Supervisor refuses a rebuild ("use Update instead").
+    if "${CLI[@]}" apps info local_assist_ar_tuner --raw-json | python3 -c 'import sys,json; d=json.load(sys.stdin)["data"]; sys.exit(d["version"] == d["version_latest"])'; then
+      "${CLI[@]}" apps update local_assist_ar_tuner
+    else
+      "${CLI[@]}" apps rebuild local_assist_ar_tuner
+    fi
     ;;
   logs) "${CLI[@]}" apps logs local_assist_ar_tuner ;;
   assistant) shift; "$PY" scripts/dev_ha.py assistant "$@" ;;
