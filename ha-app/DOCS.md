@@ -16,8 +16,7 @@ before it is applied, tested on Home Assistant afterwards, and can be undone in 
 Then use your voice assistant as usual, and open **Request Tuner** to fix the requests that went to the LLM.
 
 All settings are on the app's own **Settings** page (Advanced → Settings); the App has no options on its
-**Configuration** tab. If you set any there in version 0.5.1 or earlier, they were moved to the Settings page when you
-updated.
+**Configuration** tab.
 
 The App reads your pipelines' debug data and registries through the Supervisor (and, when you choose Home Assistant's
 Local OpenAI LLM as the AI server, that integration's server URL and key from `.storage/core.config_entries`, read
