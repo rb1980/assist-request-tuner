@@ -24,7 +24,8 @@
     <section class="card request-list" aria-label="Home requests">
     {% for c in candidates %}
       <article class="request-row choice" data-pattern="{{ c.pattern }}">
-        <div class="request-copy"><h3>“{{ c.examples[0] }}”</h3><p class="meta">Asked {{ c.count }} time{{ 's' if c.count != 1 }} · {{ c.devices.keys()|join(', ') }} · via {{ c.pipelines.keys()|join(', ') }}{% if c.last_at %} · {{ c.last_at|localtime }}{% endif %}</p>
+        <div class="request-copy"><h3>“{{ c.examples[0] }}”</h3><p class="meta">Asked {{ c.count }} time{{ 's' if c.count != 1 }}{% if c.last_at %} · {{ c.last_at|localtime }}{% endif %}</p>
+          <p class="meta">{{ c.devices.keys()|join(', ') }} · via {{ c.pipelines.keys()|join(', ') }}</p>
           {% if c.actions %}<p class="meta">Observed AI action: {{ c.actions|join('; ') }}</p>{% endif %}
           {% if c.badge %}<span class="badge info">{{ c.badge }}</span>{% endif %}
         </div>
@@ -43,7 +44,7 @@
     <h2>Other recent requests the AI answered</h2>
     <p class="meta">These may be general questions. Review the recorded request before choosing a fix.</p>
     <section class="card request-list" aria-label="Other recent requests">
-      {% for r in recent %}<article class="request-row choice" data-pattern="{{ r.pattern }}"><div class="request-copy"><h3>“{{ r.transcript }}”</h3><p class="meta">{{ r.started_at|localtime }} · {{ r.device_name or 'Typed / unknown' }} · via {{ r.pipeline_name or 'unknown pipeline' }}</p></div><div class="actions"><a class="button" href="{{ root }}/fix/request/{{ r.id }}" aria-label="Fix “{{ r.transcript }}”">Review</a>{{ hide(r.pattern) }}</div></article>{% endfor %}
+      {% for r in recent %}<article class="request-row choice" data-pattern="{{ r.pattern }}"><div class="request-copy"><h3>“{{ r.transcript }}”</h3><p class="meta">{{ r.started_at|localtime }}</p><p class="meta">{{ r.device_name or 'Typed / unknown' }} · via {{ r.pipeline_name or 'unknown pipeline' }}</p></div><div class="actions"><a class="button" href="{{ root }}/fix/request/{{ r.id }}" aria-label="Fix “{{ r.transcript }}”">Review</a>{{ hide(r.pattern) }}</div></article>{% endfor %}
     </section>
   {% endif %}
   {% if done %}
