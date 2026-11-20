@@ -248,7 +248,8 @@ async def test_left_out_pipelines_are_a_checklist_and_hide_their_requests(clean_
     monkeypatch.setenv('HA_TOKEN', 'ha-placeholder')
     monkeypatch.setenv('HA_CONFIG_ACCESS', 'none')
     fake_ha.pipelines = [{'id': 'house', 'name': 'House', 'prefer_local_intents': True, 'conversation_engine': 'conversation.llm'},
-                         {'id': 'va2', 'name': 'VA2', 'prefer_local_intents': False, 'conversation_engine': 'conversation.llm'}]
+                         {'id': 'va2', 'name': 'VA2', 'prefer_local_intents': False, 'conversation_engine': 'conversation.llm'},
+                         {'id': 'ha', 'name': 'Home Assistant', 'prefer_local_intents': False, 'conversation_engine': 'conversation.home_assistant'}]
     settings = Settings(token='api-placeholder', db_path=str(clean_env / 'db.sqlite'))
     app = create_app(settings, start_collector=False)
     async with app.router.lifespan_context(app):
@@ -259,7 +260,8 @@ async def test_left_out_pipelines_are_a_checklist_and_hide_their_requests(clean_
         async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url='http://testserver') as client:
             await client.post('/login', data={'token': 'api-placeholder'})
             page = (await client.get('/settings')).text
-            assert 'name="IGNORE_PIPELINE" value="va2" >' in page and 'Prefer handling commands locally: off' in page
+            assert 'name="IGNORE_PIPELINE" value="va2" >' in page and page.count('Prefer handling commands locally: off') == 1
+            assert "Home Assistant's own agent, no LLM" in page   # not reported as sending everything to an LLM
             assert {c['pattern']: c['pipelines'] for c in analysis.candidates(db, app.state.service.ha)} == {'house lamp': {'House': 1}, 'va2 lamp': {'VA2': 1}}
             assert 'via VA2' in (await client.get('/requests/' + str(va2))).text
 

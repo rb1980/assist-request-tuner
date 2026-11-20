@@ -220,7 +220,9 @@ def ui_router(service, settings):
             found = (await service.ha.call('assist_pipeline/pipeline/list'))['pipelines']
         except Exception:
             return None
-        choices = [dict(id=p['id'], name=p['name'], local=p.get('prefer_local_intents'), agent=p.get('conversation_engine') or '',
+        builtin = ('conversation.home_assistant', 'homeassistant')   # HA's own agent: no LLM, so the setting means nothing
+        choices = [dict(id=p['id'], name=p['name'], agent=p.get('conversation_engine') or '',
+                        local='builtin' if p.get('conversation_engine') in builtin else p.get('prefer_local_intents'),
                         left_out=p['id'] in left_out or p['name'] in left_out) for p in found]
         known = {c['id'] for c in choices} | {c['name'] for c in choices}
         return choices + [dict(id=x, name=x, local=None, agent='', left_out=True, missing=True) for x in left_out if x not in known]

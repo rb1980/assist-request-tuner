@@ -83,7 +83,7 @@
                   {% for p in pipelines %}
                     <label class="pipeline"><input type="checkbox" name="IGNORE_PIPELINE" value="{{ p.id }}" {{ 'checked' if p.left_out }}>
                       <span><strong>{{ p.name }}</strong>
-                        <small class="meta">{% if p.missing %}Not found in Home Assistant: untick to remove it.{% elif p.local %}Prefer handling commands locally: on{% elif p.local is sameas false %}<span class="warn">Prefer handling commands locally: off. Everything goes to the LLM.</span>{% endif %}{% if p.agent and not p.missing %} · {{ p.agent }}{% endif %}</small></span></label>
+                        <small class="meta">{% if p.missing %}Not found in Home Assistant: untick to remove it.{% elif p.local == 'builtin' %}Home Assistant's own agent, no LLM: nothing goes to an LLM to fix{% elif p.local %}Prefer handling commands locally: on{% elif p.local is sameas false %}<span class="warn">Prefer handling commands locally: off. Everything goes to the LLM.</span>{% endif %}{% if p.agent and not p.missing and p.local != 'builtin' %} · {{ p.agent }}{% endif %}</small></span></label>
                   {% else %}<p class="meta">Home Assistant has no voice assistant pipelines yet.</p>{% endfor %}
                 </div>
               {% else %}
