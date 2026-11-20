@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
   <h1>{{ row.transcript }}</h1>
-  <p>{{ row.started_at|localtime }} · {{ row.device_name or 'Typed / unknown' }} · {{ row.handled_by }}</p>
+  <p>{{ row.started_at|localtime }} · {{ row.device_name or 'Typed / unknown' }} · via {{ row.pipeline_name or 'unknown pipeline' }} · {{ row.handled_by }}</p>
   {% if row.handled_by == 'llm' %}
     <p>{{ row.near_miss_text }}</p>
     {% if row.working_phrasings %}

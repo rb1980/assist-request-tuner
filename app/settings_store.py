@@ -41,7 +41,10 @@ SECTIONS = [
         ('NIGHTLY_DIAGNOSE', 'Analyse the top five requests every night', 'bool', ''),
     ]),
     ('Collecting requests', 'collector', [
-        ('IGNORE_PIPELINES', 'Pipelines to ignore', 'list', 'Names or IDs, comma-separated (for example a test pipeline).'),
+        ('IGNORE_PIPELINES', 'Pipelines to leave out', 'list',
+         "Their requests aren't collected, and those already collected are hidden from the lists and statistics (tick a pipeline again "
+         "to bring them back). Leave out pipelines that send everything to the LLM: without Prefer handling commands locally, Home "
+         "Assistant never tries a request itself, so there is nothing to fix."),
         ('EXCLUDE_DEVICE_IDS', 'Devices to exclude', 'list', 'Device IDs, comma-separated.'),
         ('RETENTION_DAYS', 'Keep requests for (days)', 'int', ''),
         ('TZ', 'Time zone', 'text', 'For example America/Los_Angeles or Europe/Berlin.'),
@@ -69,6 +72,20 @@ def current(settings):
     secrets = {'HA_TOKEN': bool(settings.ha_token), 'LLM_API_KEY': bool(settings.openrouter_api_key)}
     return {name: dict(field, name=name, value=values.get(name, ''), is_set=secrets.get(name), source=SOURCE_WORDS[config.source(name)])
             for name, field in FIELDS.items()}
+
+
+def fold_pipelines(form):
+    """The Settings page sends left-out pipelines as one checkbox each (IGNORE_PIPELINE, the pipeline id); turn them
+    into the IGNORE_PIPELINES list. Without the checklist (Home Assistant unreachable) the text field is sent as is."""
+    data = {k: form.get(k) for k in form.keys()}
+    if data.get('IGNORE_PIPELINES__checklist'):
+        data['IGNORE_PIPELINES'] = ','.join(v for v in form.getlist('IGNORE_PIPELINE') if v)
+    data.pop('IGNORE_PIPELINE', None)
+    return data
+
+
+def candidate_list(value):
+    return [x.strip() for x in str(value or '').split(',') if x.strip()]
 
 
 def parse(form, supervised=False):

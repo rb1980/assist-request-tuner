@@ -213,6 +213,18 @@ def ui_router(service, settings):
                     ha_chosen='/'.join(filter(None, [(c := ha_llm.choose(found, settings.ai_ha_server))[0] and c[0]['id'],
                                                      c[1] and c[1]['id']])))
 
+    async def pipeline_choices(left_out):
+        # HA's pipelines for the "Pipelines to leave out" checklist; entries no pipeline matches stay listed, ticked,
+        # so they can be removed. None when HA can't be asked (the page then shows the text field).
+        try:
+            found = (await service.ha.call('assist_pipeline/pipeline/list'))['pipelines']
+        except Exception:
+            return None
+        choices = [dict(id=p['id'], name=p['name'], local=p.get('prefer_local_intents'), agent=p.get('conversation_engine') or '',
+                        left_out=p['id'] in left_out or p['name'] in left_out) for p in found]
+        known = {c['id'] for c in choices} | {c['name'] for c in choices}
+        return choices + [dict(id=x, name=x, local=None, agent='', left_out=True, missing=True) for x in left_out if x not in known]
+
     @r.get('/settings')
     async def settings_page(request: Request):
         blueprint, error = None, None
@@ -223,11 +235,12 @@ def ui_router(service, settings):
         return page(request, 'settings.html', blueprint=blueprint, blueprint_error=error, sections=settings_store.SECTIONS,
                     fields=settings_store.current(settings), saved=request.query_params.get('saved'),
                     check=request.query_params.get('check'), check_ok=request.query_params.get('ok') == '1', errors=[],
-                    note=request.query_params.get('note'), presets=settings_store.presets_view(settings), **await ha_servers())
+                    note=request.query_params.get('note'), presets=settings_store.presets_view(settings),
+                    pipelines=await pipeline_choices(settings.ignore_pipelines), **await ha_servers())
 
     @r.post('/settings')
     async def save_settings(request: Request):
-        data = await form(request)
+        data = settings_store.fold_pipelines(await form(request))
         updates, errors = settings_store.parse(data, settings.supervised)
         if errors:
             fields = settings_store.current(settings)
@@ -238,7 +251,8 @@ def ui_router(service, settings):
                     field['value'] = str(data[name])
             return page(request, 'settings.html', blueprint=None, blueprint_error=None, sections=settings_store.SECTIONS,
                         fields=fields, saved=None, check=None, check_ok=False, errors=errors,
-                        note=None, presets=settings_store.presets_view(settings), **await ha_servers())
+                        note=None, presets=settings_store.presets_view(settings),
+                        pipelines=await pipeline_choices(settings_store.candidate_list(data.get('IGNORE_PIPELINES'))), **await ha_servers())
         settings_store.save(settings_store.changed_only(updates, settings))
         async with changes.lock:
             await settings_store.apply(settings, service)
@@ -257,12 +271,12 @@ def ui_router(service, settings):
 
     @r.post('/ui/settings/presets/check')
     async def check_preset(request: Request):
-        _trial, errors = settings_store.preset_check(await form(request), settings)
+        _trial, errors = settings_store.preset_check(settings_store.fold_pipelines(await form(request)), settings)
         return dict(ok=not errors, errors=errors, message='Fix these first: ' + '; '.join(errors) if errors else '')
 
     @r.post('/ui/settings/presets/save')
     async def save_preset(request: Request):
-        data = await form(request)
+        data = settings_store.fold_pipelines(await form(request))
         trial, errors = settings_store.preset_check(data, settings)
         if errors:
             raise ValueError('Fix these first: ' + '; '.join(errors))
@@ -290,7 +304,7 @@ def ui_router(service, settings):
 
     @r.post('/ui/settings/test/{section}')
     async def test_settings(section: str, request: Request):
-        data = await form(request)
+        data = settings_store.fold_pipelines(await form(request))
         return await settings_store.test(section, data, settings, service)
 
     @r.post('/ui/writer/forget_host_key')

@@ -36,6 +36,7 @@ def create_app(settings=None, ha=None, start_collector=True):
         logging.basicConfig(format='%(asctime)s %(levelname)s %(name)s: %(message)s')
         logging.getLogger(names.LOGGER).setLevel(os.getenv('LOG_LEVEL', 'INFO').upper())
         db = DB(settings.db_path)
+        db.hidden_pipelines = lambda: settings.ignore_pipelines   # follows changes saved on the Settings page
         client = ha or HA(settings)
         changes = Changes(db, client, settings)
         service = Service(db, client, changes)

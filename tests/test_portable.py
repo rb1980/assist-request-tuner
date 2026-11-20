@@ -2,7 +2,7 @@ import json
 import os
 import httpx
 import pytest
-from app import config
+from app import analysis, config
 from app.config import Settings
 from app.db import DB
 from app.local_writer import LocalWriter, DisabledWriter, make_writer
@@ -241,6 +241,37 @@ async def test_settings_save_keeps_or_renews_the_ha_connection(clean_env, fake_h
             assert settings.retention == 30 and ha.ws is socket and app.state.service.status()['ha_connected']
             await client.post('/settings', data=dict(form, HA_TOKEN='new-ha-placeholder'))
             assert ha.ws is not None and ha.ws is not socket and app.state.service.status()['ha_connected']
+
+
+async def test_left_out_pipelines_are_a_checklist_and_hide_their_requests(clean_env, fake_ha, monkeypatch):
+    monkeypatch.setenv('HA_URL', fake_ha.url)
+    monkeypatch.setenv('HA_TOKEN', 'ha-placeholder')
+    monkeypatch.setenv('HA_CONFIG_ACCESS', 'none')
+    fake_ha.pipelines = [{'id': 'house', 'name': 'House', 'prefer_local_intents': True, 'conversation_engine': 'conversation.llm'},
+                         {'id': 'va2', 'name': 'VA2', 'prefer_local_intents': False, 'conversation_engine': 'conversation.llm'}]
+    settings = Settings(token='api-placeholder', db_path=str(clean_env / 'db.sqlite'))
+    app = create_app(settings, start_collector=False)
+    async with app.router.lifespan_context(app):
+        db = app.state.service.db
+        store(db, text='turn on the house lamp', pattern='house lamp')
+        va2 = store(db, text='turn on the va2 lamp', pattern='va2 lamp')
+        db.execute("UPDATE requests SET pipeline_id='va2', pipeline_name='VA2' WHERE id=?", (va2,))
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url='http://testserver') as client:
+            await client.post('/login', data={'token': 'api-placeholder'})
+            page = (await client.get('/settings')).text
+            assert 'name="IGNORE_PIPELINE" value="va2" >' in page and 'Prefer handling commands locally: off' in page
+            assert {c['pattern']: c['pipelines'] for c in analysis.candidates(db, app.state.service.ha)} == {'house lamp': {'House': 1}, 'va2 lamp': {'VA2': 1}}
+            assert 'via VA2' in (await client.get('/requests/' + str(va2))).text
+
+            form = {'HA_URL': fake_ha.url, 'HA_CONFIG_ACCESS': 'none', 'TZ': 'UTC', 'IGNORE_PIPELINES__checklist': '1', 'IGNORE_PIPELINE': ['va2']}
+            await client.post('/settings', data=form)
+            assert settings.ignore_pipelines == ['va2']
+            assert [r['pattern'] for r in analysis.requests(db, limit=-1)] == ['house lamp']   # hidden, not deleted
+            assert len(analysis.requests(db, include_excluded=True, limit=-1)) == 2
+            assert 'name="IGNORE_PIPELINE" value="va2" checked' in (await client.get('/settings')).text
+
+            await client.post('/settings', data=dict(form, IGNORE_PIPELINE=[]))   # ticked again: back in the lists
+            assert settings.ignore_pipelines == [] and len(analysis.requests(db, limit=-1)) == 2
 
 
 async def test_settings_test_buttons_use_unsaved_form_values(clean_env, fake_ha, fake_openai, monkeypatch):

@@ -19,6 +19,7 @@
       <tr>
         <th>Time</th>
         <th>Device</th>
+        <th>Pipeline</th>
         <th>Transcript</th>
         <th>Handled by</th>
         <th>Topic</th>
@@ -29,6 +30,7 @@
         <tr>
           <td>{{ row.started_at|localtime }}</td>
           <td>{{ row.device_name or 'Typed / unknown' }}</td>
+          <td>{{ row.pipeline_name or '' }}</td>
           <td><a href="{{ root }}/requests/{{ row.id }}">{{ row.transcript or '(in progress)' }}</a>{% if row.excluded %} (excluded){% endif %}</td>
           <td><span class="badge {{ row.handled_by }}">{{ row.handled_by }}</span></td>
           <td>{{ row.effective_topic }}</td>

@@ -11,6 +11,7 @@ class DB:
     def __init__(self, path):
         Path(path).parent.mkdir(parents=True, exist_ok=True)
         self.conn = sqlite3.connect(path, check_same_thread=False)
+        self.hidden_pipelines = lambda: []   # names or ids of left-out pipelines (set from the settings at start-up)
         self.conn.row_factory = sqlite3.Row
         self.conn.execute('PRAGMA journal_mode=WAL')
         self.conn.executescript('''

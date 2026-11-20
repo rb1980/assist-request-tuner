@@ -13,6 +13,10 @@ def requests(db, include_excluded=False, limit=50, offset=0, **filters):
     clauses, args = [], []
     if not include_excluded:
         clauses.append('r.excluded=0')
+        if hidden := list(getattr(db, 'hidden_pipelines', lambda: [])()):
+            marks = ','.join('?' * len(hidden))
+            clauses.append(f"NOT (COALESCE(r.pipeline_id,'') IN ({marks}) OR COALESCE(r.pipeline_name,'') IN ({marks}))")
+            args.extend(hidden * 2)
     for key, column in {'handled_by': 'r.handled_by', 'topic': 'COALESCE(r.topic_override,p.topic_override,r.topic)', 'source': 'r.source', 'device': 'r.device_id', 'pattern': 'r.pattern'}.items():
         if filters.get(key):
             clauses.append(column + '=?')
@@ -85,6 +89,7 @@ def candidates(db, ha, days=30, limit=20):
             hints.append(dict(kind='command: alias or a sentence trigger for that action'))
         result.append(dict(pattern=pattern, count=len(rows), examples=examples,
                            devices=dict(Counter(r['device_name'] or 'Typed / unknown' for r in rows)),
+                           pipelines=dict(Counter(r['pipeline_name'] or 'Unknown pipeline' for r in rows)),
                            tools=[dict(json.loads(k), count=v) for k, v in tools.most_common(10)],
                            near_miss=near, near_miss_text=near_miss_text(representative), suggestions=hints))
     return result

@@ -46,7 +46,7 @@
             {% if f.kind == 'bool' %}
               <label for="{{ name }}"><input id="{{ name }}" aria-describedby="help-{{ name }}" type="checkbox" name="{{ name }}" value="1" {{ 'checked' if f.value }}> {{ f.label }}</label>
             {% else %}
-              <label for="{{ name }}">{{ f.label }}</label>
+              <label for="{{ name }}" id="label-{{ name }}">{{ f.label }}</label>
               {% if f.kind == 'secret' %}
                 <input id="{{ name }}" name="{{ name }}" aria-describedby="help-{{ name }}" type="password" autocomplete="off"
                        placeholder="{{ '•••••••• set — type to replace' if f.is_set else 'Not set' }}">
@@ -77,6 +77,15 @@
                 {% endif %}
               {% elif f.kind.startswith('choice:') %}
                 <select id="{{ name }}" name="{{ name }}" aria-describedby="help-{{ name }}">{% for option in f.kind[7:].split('|') %}<option value="{{ option }}" {{ 'selected' if option == f.value|string }}>{{ {'local': 'Mounted folder', 'sftp': 'SFTP', 'none': 'None · Draft file-based fixes only'}.get(option, option|capitalize) }}</option>{% endfor %}</select>
+              {% elif name == 'IGNORE_PIPELINES' and pipelines is not none %}
+                <input type="hidden" name="IGNORE_PIPELINES__checklist" value="1">
+                <div class="pipelines" role="group" aria-labelledby="label-{{ name }}" aria-describedby="help-{{ name }}">
+                  {% for p in pipelines %}
+                    <label class="pipeline"><input type="checkbox" name="IGNORE_PIPELINE" value="{{ p.id }}" {{ 'checked' if p.left_out }}>
+                      <span><strong>{{ p.name }}</strong>
+                        <small class="meta">{% if p.missing %}Not found in Home Assistant: untick to remove it.{% elif p.local %}Prefer handling commands locally: on{% elif p.local is sameas false %}<span class="warn">Prefer handling commands locally: off. Everything goes to the LLM.</span>{% endif %}{% if p.agent and not p.missing %} · {{ p.agent }}{% endif %}</small></span></label>
+                  {% else %}<p class="meta">Home Assistant has no voice assistant pipelines yet.</p>{% endfor %}
+                </div>
               {% else %}
                 <input id="{{ name }}" name="{{ name }}" aria-describedby="help-{{ name }}" value="{{ f.value if f.value is not none }}"
                        type="{{ 'url' if f.kind == 'url' else 'number' if f.kind in ('int', 'float') else 'text' }}"
