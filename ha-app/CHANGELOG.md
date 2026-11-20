@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.3
+
+- The list of requests to fix is easier to read: how often and when on the first line, the devices and pipeline on the
+  second, the AI's action on the third.
+
 ## 0.5.2
 
 - Each request now shows which voice assistant pipeline it went to. On the Settings page, **Pipelines to leave out** is a
